@@ -1,0 +1,74 @@
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: voltix
+      POSTGRES_PASSWORD: voltix
+      POSTGRES_DB: voltix
+    ports:
+      - "5432:5432"
+    volumes:
+      - voltix_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voltix -d voltix"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://voltix:voltix@db:5432/voltix
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: dev-change-me-voltix-jwt-secret-32chars
+      EDGE_INGEST_API_KEY: voltix-edge-dev-key
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8081,http://127.0.0.1:5173
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://voltix:voltix@db:5432/voltix
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  simulator:
+    build:
+      context: .
+      dockerfile: apps/simulator/Dockerfile
+    environment:
+      CLOUD_URL: http://api:8000
+      EDGE_INGEST_API_KEY: voltix-edge-dev-key
+      SIM_INTERVAL: "2"
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  voltix_pg:
