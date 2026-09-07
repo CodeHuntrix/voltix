@@ -1,0 +1,13 @@
+{
+  "machine_id": "laptop_charger_01",
+  "model_version": "drift-v1",
+  "features": [
+    "i_rms_a",
+    "i_rolling_mean",
+    "i_rolling_std"
+  ],
+  "z_threshold": 5.0,
+  "window_size": 15,
+  "training_date": "2026-09-07T08:39:13.785599+00:00",
+  "sample_count": 14843
+}
