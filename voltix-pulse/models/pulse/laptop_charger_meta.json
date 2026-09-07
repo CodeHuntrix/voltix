@@ -1,0 +1,134 @@
+{
+    "model_version": "gmm-v1",
+    "machine_id": "laptop_charger_01",
+    "machine_type": "laptop_charger",
+    "algorithm": "GaussianMixture",
+    "n_components": 3,
+    "covariance_type": "full",
+    "random_state": 42,
+    "features": [
+        "i_rms_a",
+        "i_mean_3samples",
+        "i_std_3samples"
+    ],
+    "sampling_interval_seconds": 2.0,
+    "effective_feature_window_seconds": 6.0,
+    "training_samples": 10414,
+    "cluster_map": {
+        "1": "IDLE",
+        "2": "IDLE",
+        "0": "ACTIVE"
+    },
+    "cluster_stats": {
+        "0": {
+            "cluster_id": 0,
+            "count": 2416,
+            "pct": 23.2,
+            "mean_current": 0.212,
+            "median_current": 0.21,
+            "std_current": 0.0557,
+            "min_current": 0.0,
+            "max_current": 0.41,
+            "majority_state": "ACTIVE",
+            "state_distribution": {
+                "ACTIVE": 0.6051,
+                "IDLE": 0.3936,
+                "OFF": 0.0012
+            },
+            "mapped_state": "ACTIVE"
+        },
+        "1": {
+            "cluster_id": 1,
+            "count": 5146,
+            "pct": 49.41,
+            "mean_current": 0.1618,
+            "median_current": 0.16,
+            "std_current": 0.0038,
+            "min_current": 0.16,
+            "max_current": 0.17,
+            "majority_state": "IDLE",
+            "state_distribution": {
+                "IDLE": 1.0
+            },
+            "mapped_state": "IDLE"
+        },
+        "2": {
+            "cluster_id": 2,
+            "count": 2852,
+            "pct": 27.39,
+            "mean_current": 0.1819,
+            "median_current": 0.17,
+            "std_current": 0.0321,
+            "min_current": 0.03,
+            "max_current": 0.41,
+            "majority_state": "IDLE",
+            "state_distribution": {
+                "IDLE": 0.7177,
+                "ACTIVE": 0.2823
+            },
+            "mapped_state": "IDLE"
+        }
+    },
+    "states_supported": [
+        "ACTIVE",
+        "IDLE"
+    ],
+    "candidate_evaluations": [
+        {
+            "n_components": 3,
+            "bic": -234528.65,
+            "aic": -234738.92,
+            "converged": true,
+            "current_means_sorted": [
+                0.1615,
+                0.1865,
+                0.2011
+            ]
+        },
+        {
+            "n_components": 4,
+            "bic": -251101.6,
+            "aic": -251384.38,
+            "converged": true,
+            "current_means_sorted": [
+                0.16,
+                0.1814,
+                0.2101,
+                0.2451
+            ]
+        },
+        {
+            "n_components": 5,
+            "bic": -260075.99,
+            "aic": -260431.29,
+            "converged": true,
+            "current_means_sorted": [
+                0.16,
+                0.1614,
+                0.1995,
+                0.2006,
+                0.2099
+            ]
+        },
+        {
+            "n_components": 6,
+            "bic": -260943.77,
+            "aic": -261371.58,
+            "converged": true,
+            "current_means_sorted": [
+                0.16,
+                0.1615,
+                0.1953,
+                0.2049,
+                0.2238,
+                0.2544
+            ]
+        }
+    ],
+    "physical_sanity_passed": true,
+    "waste_detection": {
+        "enabled": false,
+        "reason": "WASTE is not distinguishable from S4P10 dataset without continuous ground-truth policy"
+    },
+    "notes": "Model learns instantaneous electrical state (OFF, IDLE, ACTIVE). WASTE is a temporal/policy rule applied by the Pulse Engine upon sustained IDLE duration."
+}
