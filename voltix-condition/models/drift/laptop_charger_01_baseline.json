@@ -1,0 +1,47 @@
+{
+  "machine_id": "laptop_charger_01",
+  "model_version": "drift-v1",
+  "training_date": "2026-09-07T08:39:13.785599+00:00",
+  "train_date_range": "2026-09-06 10:03:24+00:00 to 2026-09-06 18:02:03+00:00",
+  "sample_count": 14843,
+  "window_size": 15,
+  "z_threshold": 5.0,
+  "z_threshold_manual": 5.0,
+  "z_threshold_calibrated": 4.32597718113902,
+  "target_false_alarm_rate": 0.01,
+  "score_lambda": 0.4,
+  "persistence_m": 3,
+  "persistence_n": 5,
+  "features": [
+    "i_rms_a",
+    "i_rolling_mean",
+    "i_rolling_std"
+  ],
+  "means": {
+    "i_rms_a": 0.17242471198544768,
+    "i_rolling_mean": 0.1725273620844934,
+    "i_rolling_std": 0.00522043711777036
+  },
+  "stds": {
+    "i_rms_a": 0.031802129843488694,
+    "i_rolling_mean": 0.03155990535632326,
+    "i_rolling_std": 0.002757751912983152
+  },
+  "cov_inv": [
+    [
+      26052.707173117895,
+      -25750.58642272836,
+      321.32426936232883
+    ],
+    [
+      -25750.586422728375,
+      26457.053759459362,
+      -697.4817414715038
+    ],
+    [
+      321.3242693623284,
+      -697.4817414715034,
+      131636.6017458299
+    ]
+  ]
+}

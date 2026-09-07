@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     edge_ingest_api_key: str = "voltix-edge-dev-key"
     tariff_default_inr_per_kwh: float = 8.5
     model_version: str = "rules-v1"
+    pulse_waste_seconds: int | None = 60
 
     @property
     def cors_origin_list(self) -> list[str]:

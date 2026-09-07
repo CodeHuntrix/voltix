@@ -1,0 +1,10 @@
+# Raw large dataset (>100MB GitHub limit)
+MetroPT3(AirCompressor).csv
+data/raw/MetroPT3(AirCompressor).csv
+*.csv.gz
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/

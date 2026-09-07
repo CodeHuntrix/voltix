@@ -21,6 +21,9 @@ dependencies = [
   "python-multipart>=0.0.17",
   "prometheus-client>=0.21.0",
   "orjson>=3.10.0",
+  "numpy>=1.24.0",
+  "scikit-learn>=1.2.0",
+  "joblib>=1.2.0",
 ]
 
 [project.optional-dependencies]
@@ -33,3 +36,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["app*"]
+
+[tool.pyright]
+extraPaths = [
+  "../../voltix-condition/src",
+  "../../voltix-pulse/src"
+]
+

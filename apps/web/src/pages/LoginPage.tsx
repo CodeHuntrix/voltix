@@ -1,73 +1,192 @@
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { BrandMark } from "@/components/BrandMark";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
+const DEMO_EMAIL = "owner@voltix.demo";
+const DEMO_PASSWORD = "voltix-demo";
+const fieldClass =
+  "mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-primary";
+
 export function LoginPage() {
-  const [email, setEmail] = useState("owner@voltix.demo");
-  const [password, setPassword] = useState("voltix-demo");
+  const [mode, setMode] = useState<"signin" | "signup">(() =>
+    new URLSearchParams(window.location.search).has("signup") ? "signup" : "signin",
+  );
+  const [email, setEmail] = useState(DEMO_EMAIL);
+  const [password, setPassword] = useState(DEMO_PASSWORD);
+  const [fullName, setFullName] = useState("");
+  const [shopName, setShopName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const setTokens = useAuth((s) => s.setTokens);
   const setContext = useAuth((s) => s.setContext);
   const navigate = useNavigate();
 
-  const mutation = useMutation({
+  function switchMode(next: "signin" | "signup") {
+    setError(null);
+    setMode(next);
+    if (next === "signin") {
+      setEmail(DEMO_EMAIL);
+      setPassword(DEMO_PASSWORD);
+    } else {
+      setEmail("");
+      setPassword("");
+    }
+  }
+
+  async function afterTokens(access: string, refresh: string, forceOnboarding: boolean) {
+    setTokens(access, refresh);
+    const orgs = await api.orgs(access);
+    if (!orgs.length) throw new Error("No organization");
+    const sites = await api.sites(access, orgs[0].id);
+    if (!sites.length) throw new Error("No site");
+    setContext(orgs[0].id, sites[0].id);
+    if (forceOnboarding) {
+      await navigate({ to: "/onboarding" });
+      return;
+    }
+    const machines = await api.machines(access, sites[0].id);
+    await navigate({ to: machines.length ? "/dashboard" : "/onboarding" });
+  }
+
+  const signIn = useMutation({
     mutationFn: async () => {
       const tokens = await api.login(email, password);
-      setTokens(tokens.access_token, tokens.refresh_token);
-      const orgs = await api.orgs(tokens.access_token);
-      if (!orgs.length) throw new Error("No organization");
-      const sites = await api.sites(tokens.access_token, orgs[0].id);
-      if (!sites.length) throw new Error("No site");
-      setContext(orgs[0].id, sites[0].id);
-      return sites[0];
+      await afterTokens(tokens.access_token, tokens.refresh_token, false);
     },
-    onSuccess: () => navigate({ to: "/dashboard" }),
     onError: (e: Error) => setError(e.message),
   });
 
+  const signUp = useMutation({
+    mutationFn: async () => {
+      if (password.length < 6) throw new Error("Password must be at least 6 characters");
+      const tokens = await api.signup({
+        email,
+        password,
+        full_name: fullName.trim(),
+        shop_name: shopName.trim(),
+      });
+      await afterTokens(tokens.access_token, tokens.refresh_token, true);
+    },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const pending = signIn.isPending || signUp.isPending;
+  const isSignup = mode === "signup";
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-lg border border-line bg-surface-elevated shadow-panel p-8">
-        <h1 className="text-2xl font-semibold text-primary">Voltix</h1>
-        <p className="mt-1 text-sm text-ink-muted">Ops console · CT-estimated energy waste</p>
+    <div className="ops-shell flex min-h-screen items-center justify-center px-4 py-10 text-white">
+      <div className="ops-shell-bg pointer-events-none fixed inset-0" aria-hidden="true" />
+      <div className="glass-card relative z-10 w-full max-w-md rounded-3xl p-8">
+        <Link to="/" className="text-sm text-white/40 hover:text-white">
+          Back
+        </Link>
+        <div className="mt-5">
+          <BrandMark to="/" size="md" />
+        </div>
+        <p className="mt-6 text-lg font-semibold">{isSignup ? "Create your shop" : "Sign in"}</p>
+        <p className="mt-1 text-sm text-white/45">
+          {isSignup
+            ? "Then pick the machines on your floor."
+            : "Judges: use the demo account, or create a shop."}
+        </p>
         <form
-          className="mt-8 space-y-4"
+          className="mt-6 space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
             setError(null);
-            mutation.mutate();
+            if (isSignup) signUp.mutate();
+            else signIn.mutate();
           }}
         >
+          {isSignup && (
+            <>
+              <label className="block text-sm">
+                <span className="text-white/45">Your name</span>
+                <input
+                  className={fieldClass}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  autoComplete="name"
+                  required
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="text-white/45">Shop name</span>
+                <input
+                  className={fieldClass}
+                  value={shopName}
+                  onChange={(e) => setShopName(e.target.value)}
+                  autoComplete="organization"
+                  required
+                />
+              </label>
+            </>
+          )}
           <label className="block text-sm">
-            <span className="text-ink-muted">Email</span>
+            <span className="text-white/45">Email</span>
             <input
-              className="mt-1 w-full rounded-md border border-line px-3 py-2"
+              className={fieldClass}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="username"
+              type="email"
+              required
             />
           </label>
           <label className="block text-sm">
-            <span className="text-ink-muted">Password</span>
+            <span className="text-white/45">Password</span>
             <input
               type="password"
-              className="mt-1 w-full rounded-md border border-line px-3 py-2"
+              className={fieldClass}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              required
+              minLength={isSignup ? 6 : undefined}
             />
           </label>
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
           <button
             type="submit"
-            disabled={mutation.isPending}
-            className="w-full rounded-md bg-primary hover:bg-primary-hover text-white py-2.5 font-medium"
+            disabled={pending}
+            className="w-full rounded-full bg-primary py-2.5 font-medium text-white hover:bg-primary-hover"
           >
-            {mutation.isPending ? "Signing in…" : "Sign in"}
+            {pending
+              ? isSignup
+                ? "Creating shop…"
+                : "Signing in…"
+              : isSignup
+                ? "Create shop"
+                : "Sign in"}
           </button>
         </form>
+        <p className="mt-5 text-center text-sm text-white/45">
+          {isSignup ? (
+            <>
+              Already have an account?{" "}
+              <button
+                type="button"
+                className="font-medium text-sky-300 hover:text-white"
+                onClick={() => switchMode("signin")}
+              >
+                Sign in
+              </button>
+            </>
+          ) : (
+            <>
+              Don&apos;t have an account?{" "}
+              <button
+                type="button"
+                className="font-medium text-sky-300 hover:text-white"
+                onClick={() => switchMode("signup")}
+              >
+                Sign up
+              </button>
+            </>
+          )}
+        </p>
       </div>
     </div>
   );

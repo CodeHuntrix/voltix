@@ -6,7 +6,9 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
+import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
+import { OnboardingPage } from "@/pages/OnboardingPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { MachinePage } from "@/pages/MachinePage";
 import { AlertsPage } from "@/pages/AlertsPage";
@@ -31,12 +33,17 @@ const loginRoute = createRoute({
   component: LoginPage,
 });
 
+const onboardingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/onboarding",
+  beforeLoad: requireAuth,
+  component: OnboardingPage,
+});
+
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  beforeLoad: () => {
-    throw redirect({ to: "/dashboard" });
-  },
+  component: LandingPage,
 });
 
 const dashboardRoute = createRoute({
@@ -84,6 +91,7 @@ const adminRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
+  onboardingRoute,
   dashboardRoute,
   machineRoute,
   alertsRoute,

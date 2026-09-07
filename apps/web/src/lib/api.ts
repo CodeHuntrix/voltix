@@ -1,5 +1,25 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
+function apiErrorMessage(text: string): string {
+  try {
+    const parsed = JSON.parse(text) as { detail?: unknown };
+    if (typeof parsed.detail === "string") return parsed.detail;
+    if (Array.isArray(parsed.detail)) {
+      const msgs = parsed.detail
+        .map((item) =>
+          typeof item === "object" && item && "msg" in item
+            ? String((item as { msg: string }).msg)
+            : "",
+        )
+        .filter(Boolean);
+      if (msgs.length) return msgs.join("; ");
+    }
+  } catch {
+    /* raw body */
+  }
+  return text;
+}
+
 export type TokenPair = { access_token: string; refresh_token: string };
 
 async function request<T>(
@@ -12,9 +32,19 @@ async function request<T>(
   };
   if (opts.token) headers.Authorization = `Bearer ${opts.token}`;
   const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
+  const publicAuth =
+    path.includes("/auth/login") || path.includes("/auth/signup");
+  if (res.status === 401 && !publicAuth) {
+    const { useAuth } = await import("@/lib/auth");
+    useAuth.getState().logout();
+    if (!location.pathname.startsWith("/login")) {
+      location.assign("/login");
+    }
+    throw new Error("Session expired — sign in again");
+  }
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || res.statusText);
+    throw new Error(apiErrorMessage(text) || res.statusText);
   }
   if (res.headers.get("content-type")?.includes("text/csv")) {
     return (await res.text()) as T;
@@ -27,6 +57,31 @@ export const api = {
     request<TokenPair>("/api/v1/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
+    }),
+  signup: (body: {
+    email: string;
+    password: string;
+    full_name: string;
+    shop_name: string;
+  }) =>
+    request<TokenPair>("/api/v1/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  createMachine: (
+    token: string,
+    siteId: string,
+    body: {
+      name: string;
+      machine_type: string;
+      eligible_autocut?: boolean;
+      device_id?: string | null;
+    },
+  ) =>
+    request(`/api/v1/sites/${siteId}/machines`, {
+      method: "POST",
+      token,
+      body: JSON.stringify(body),
     }),
   me: (token: string) => request<any>("/api/v1/auth/me", { token }),
   orgs: (token: string) => request<any[]>("/api/v1/orgs", { token }),
@@ -43,7 +98,9 @@ export const api = {
   machines: (token: string, siteId: string) =>
     request<any[]>(`/api/v1/sites/${siteId}/machines`, { token }),
   telemetry: (token: string, machineId: string) =>
-    request<any[]>(`/api/v1/machines/${machineId}/telemetry?limit=120`, { token }),
+    request<any[]>(`/api/v1/machines/${machineId}/telemetry?limit=120`, {
+      token,
+    }),
   states: (token: string, machineId: string) =>
     request<any[]>(`/api/v1/machines/${machineId}/states`, { token }),
   autocutList: (token: string, siteId: string) =>

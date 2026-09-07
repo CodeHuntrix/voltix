@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Shell } from "@/components/Shell";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { formatInr } from "@/lib/money";
 
 export function MvPage() {
   const token = useAuth((s) => s.accessToken)!;
@@ -48,22 +49,26 @@ export function MvPage() {
 
   return (
     <Shell>
-      <div className="flex items-end justify-between gap-4 mb-6">
+      <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">M&V</h1>
-          <p className="text-sm text-ink-muted">Baseline vs intervention · CT-estimated kWh</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">M&V</h1>
+          <p className="text-sm text-white/45">Baseline vs intervention · savings in rupees</p>
+          {createReport.isError && (
+            <p className="mt-1 text-sm text-red-400">{(createReport.error as Error).message}</p>
+          )}
         </div>
         <div className="flex gap-2">
           <button
             type="button"
-            className="rounded-md bg-primary text-white px-3 py-2 text-sm"
+            className="rounded-full bg-primary px-4 py-2 text-sm text-white hover:bg-primary-hover disabled:opacity-50"
+            disabled={createReport.isPending}
             onClick={() => createReport.mutate()}
           >
-            Generate report
+            {createReport.isPending ? "Generating…" : "Generate report"}
           </button>
           <button
             type="button"
-            className="rounded-md border border-line px-3 py-2 text-sm"
+            className="glass-card rounded-full px-4 py-2 text-sm text-white"
             onClick={() => exportCsv.mutate()}
           >
             Export CSV
@@ -72,48 +77,44 @@ export function MvPage() {
       </div>
 
       <section className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted mb-3">
-          Baselines
-        </h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/45">Baselines</h2>
         <ul className="space-y-2">
-          {(baselines.data ?? []).map((b) => (
-            <li key={b.id} className="rounded-md border border-line bg-surface-elevated px-4 py-3 text-sm">
-              <span className="font-medium">{b.name}</span>
-              <span className="ml-3 font-mono text-ink-muted">{b.baseline_kwh} kWh</span>
+          {(baselines.data ?? []).map((b: any) => (
+            <li key={b.id} className="glass-card rounded-2xl px-4 py-3 text-sm">
+              <span className="font-medium text-white">{b.name}</span>
+              <span className="ml-3 font-mono text-white/45">{b.baseline_kwh} kWh</span>
             </li>
           ))}
         </ul>
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted mb-3">
-          Reports
-        </h2>
-        <div className="rounded-lg border border-line overflow-hidden bg-surface-elevated">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/45">Reports</h2>
+        <div className="glass-card overflow-hidden rounded-2xl">
           <table className="w-full text-sm">
-            <thead className="bg-surface-muted text-ink-muted text-left">
+            <thead className="text-left text-white/45">
               <tr>
-                <th className="px-4 py-2">Period</th>
-                <th className="px-4 py-2">Intervention kWh</th>
-                <th className="px-4 py-2">Savings kWh</th>
-                <th className="px-4 py-2">Savings ₹</th>
+                <th className="px-4 py-3">Period</th>
+                <th className="px-4 py-3">Intervention kWh</th>
+                <th className="px-4 py-3">Savings kWh</th>
+                <th className="px-4 py-3">Savings</th>
               </tr>
             </thead>
             <tbody>
-              {(reports.data ?? []).map((r) => (
-                <tr key={r.id} className="border-t border-line">
-                  <td className="px-4 py-2 font-mono text-xs">
+              {(reports.data ?? []).map((r: any) => (
+                <tr key={r.id} className="border-t border-white/10">
+                  <td className="px-4 py-3 font-mono text-xs text-white/70">
                     {new Date(r.intervention_start).toLocaleDateString()} –{" "}
                     {new Date(r.intervention_end).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-2 font-mono">{r.intervention_kwh.toFixed(1)}</td>
-                  <td className="px-4 py-2 font-mono">{r.savings_kwh.toFixed(1)}</td>
-                  <td className="px-4 py-2 font-mono">₹{r.savings_inr.toFixed(0)}</td>
+                  <td className="px-4 py-3 font-mono text-white">{r.intervention_kwh.toFixed(1)}</td>
+                  <td className="px-4 py-3 font-mono text-white">{r.savings_kwh.toFixed(1)}</td>
+                  <td className="px-4 py-3 font-mono text-emerald-400">{formatInr(r.savings_inr)}</td>
                 </tr>
               ))}
               {!(reports.data ?? []).length && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-6 text-ink-muted">
+                  <td colSpan={4} className="px-4 py-6 text-white/45">
                     No reports yet.
                   </td>
                 </tr>

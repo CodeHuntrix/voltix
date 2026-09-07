@@ -94,5 +94,5 @@ docker-compose.yml
 
 ## Dev notes
 
-- Git branch: work on `feature/voltix-v1` (from `dev`), never commit to `main`.
+- Git branch: `main` is the demo trunk. Work on a `feature/*` branch and merge to `main`.
 - Env template: `.env.example`
