@@ -6,6 +6,7 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
+import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { MachinePage } from "@/pages/MachinePage";
@@ -34,9 +35,7 @@ const loginRoute = createRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  beforeLoad: () => {
-    throw redirect({ to: "/dashboard" });
-  },
+  component: LandingPage,
 });
 
 const dashboardRoute = createRoute({

@@ -1,4 +1,5 @@
 from app.services.pulse import classify_current, refine_waste, residual_waste_kw
+from app.services.gmm_pulse import gmm_machine_id
 
 
 class _M:
@@ -19,3 +20,9 @@ def test_waste_refine():
     m = _M()
     assert refine_waste("IDLE", 0.8, m) == "WASTE"
     assert residual_waste_kw(0.8, "WASTE", m) > 0
+
+
+def test_gmm_machine_routing():
+    assert gmm_machine_id("compressor", "Compressor 2") == "compressor_01"
+    assert gmm_machine_id("laptop", "Laptop Demo") == "laptop_charger_01"
+    assert gmm_machine_id("cnc", "CNC Lathe 1") is None

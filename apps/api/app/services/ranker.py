@@ -51,6 +51,7 @@ async def rank_site_waste(db: AsyncSession, site_id: UUID) -> list[WasteRankItem
                 score=round(score, 2),
                 waste_kwh=round(waste_kwh, 3),
                 waste_inr=round(waste_inr, 2),
+                waste_inr_per_hr=round(inr_per_hr, 2),
                 duration_min=round(duration_min, 1),
                 state=state,
             )

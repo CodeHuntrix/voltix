@@ -76,13 +76,30 @@ def sample(machine: dict, t: float) -> dict:
     state = phase_for(machine["name"], t)
     v = machine.get("v_nominal", 230.0)
     pf = machine.get("pf_assumed", 0.85)
-    if state == "OFF":
+    mtype = (machine.get("machine_type") or "").lower()
+    name = machine.get("name") or ""
+
+    if "compress" in mtype or "Compressor" in name:
+        if state == "OFF":
+            i = random.uniform(0.030, 0.042)
+        elif state == "ACTIVE":
+            i = random.uniform(5.6, 7.4)
+        else:
+            i = random.uniform(3.55, 3.95)
+    elif "laptop" in mtype or "Laptop" in name:
+        if state == "OFF":
+            i = random.uniform(0.0, 0.008)
+        elif state == "ACTIVE":
+            i = random.uniform(0.205, 0.225)
+        else:
+            i = random.uniform(0.160, 0.165)
+    elif state == "OFF":
         i = random.uniform(0.0, 0.15)
     elif state == "ACTIVE":
         i = random.uniform(6.0, 14.0) + math.sin(t / 5) * 0.5
     elif state == "IDLE":
         i = random.uniform(0.8, 1.8)
-    else:  # WASTE
+    else:
         i = random.uniform(2.2, 4.5)
     kw = (v * i * pf) / 1000.0
     return {

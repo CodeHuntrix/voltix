@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { BrandMark } from "@/components/BrandMark";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
@@ -28,10 +29,15 @@ export function LoginPage() {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-lg border border-line bg-surface-elevated shadow-panel p-8">
-        <h1 className="text-2xl font-semibold text-primary">Voltix</h1>
-        <p className="mt-1 text-sm text-ink-muted">Ops console · CT-estimated energy waste</p>
+    <div className="ops-shell flex min-h-screen items-center justify-center px-4 text-white">
+      <div className="ops-shell-bg pointer-events-none fixed inset-0" aria-hidden="true" />
+      <div className="glass-card relative z-10 w-full max-w-md rounded-3xl p-8">
+        <Link to="/" className="text-sm text-white/40 hover:text-white">
+          Back
+        </Link>
+        <div className="mt-5">
+          <BrandMark to="/" size="md" />
+        </div>
         <form
           className="mt-8 space-y-4"
           onSubmit={(e) => {
@@ -41,29 +47,29 @@ export function LoginPage() {
           }}
         >
           <label className="block text-sm">
-            <span className="text-ink-muted">Email</span>
+            <span className="text-white/45">Email</span>
             <input
-              className="mt-1 w-full rounded-md border border-line px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-primary"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="username"
             />
           </label>
           <label className="block text-sm">
-            <span className="text-ink-muted">Password</span>
+            <span className="text-white/45">Password</span>
             <input
               type="password"
-              className="mt-1 w-full rounded-md border border-line px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-primary"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
             />
           </label>
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="w-full rounded-md bg-primary hover:bg-primary-hover text-white py-2.5 font-medium"
+            className="w-full rounded-full bg-primary py-2.5 font-medium text-white hover:bg-primary-hover"
           >
             {mutation.isPending ? "Signing in…" : "Sign in"}
           </button>

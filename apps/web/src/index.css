@@ -3,19 +3,90 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(12, 92, 171, 0.08), transparent 55%),
-    radial-gradient(900px 500px at 100% 0%, rgba(15, 23, 42, 0.04), transparent 50%),
-    #f8fafc;
+  background: #07090c;
 }
 
 *:focus-visible {
-  outline: 2px solid #0C5CAB;
+  outline: 2px solid #0c5cab;
   outline-offset: 2px;
+}
+
+.ops-shell-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(12, 92, 171, 0.28), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 20%, rgba(16, 185, 129, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 70% 90%, rgba(245, 158, 11, 0.08), transparent 45%),
+    linear-gradient(165deg, #0f171e 0%, #07090c 55%, #050608 100%);
+}
+
+.ops-shell-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black, transparent);
+  opacity: 0.5;
+}
+
+.glass-card {
+  background: rgba(22, 27, 34, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.glass-rail {
+  background: rgba(18, 22, 28, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-pill {
+  background: rgba(22, 27, 34, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.machine-card {
+  background: #10141a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+}
+
+.machine-well {
+  position: relative;
+  overflow: hidden;
+  background: #07090c;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.machine-well::after {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 10px;
+  height: 14px;
+  border-radius: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.machine-art {
+  mix-blend-mode: lighten;
 }

@@ -1,4 +1,4 @@
-"""Pulse / machine-state engine with debounce. GMM-ready via model_version hook."""
+"""Pulse / machine-state engine: GMM-v1 when a model exists, else rules-v1."""
 
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
@@ -7,7 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
-from app.models import Machine, MachineLatest, MachineStateEvent
+from app.models import Machine, MachineLatest, MachineStateEvent, Telemetry
+from app.services.gmm_pulse import gmm_available, gmm_machine_id, predict_gmm_instant
 
 DEBOUNCE_SECONDS = 8
 
@@ -18,7 +19,6 @@ def classify_current(i_rms: float, machine: Machine) -> str:
     if i_rms < machine.thr_idle:
         return "IDLE"
     if i_rms < machine.thr_active:
-        # Between idle and active band → treat as IDLE/WASTE candidate when prolonged
         return "IDLE"
     return "ACTIVE"
 
@@ -28,9 +28,62 @@ def refine_waste(raw_state: str, kw_est: float, machine: Machine) -> str:
     if raw_state == "IDLE" and kw_est > machine.baseline_idle_kw * 1.15:
         return "WASTE"
     if raw_state == "ACTIVE" and kw_est < machine.baseline_idle_kw * 1.5:
-        # Low active band with elevated idle — still waste-like
         return "IDLE"
     return raw_state
+
+
+async def _recent_history(db: AsyncSession, machine_id: UUID) -> list[float]:
+    result = await db.execute(
+        select(Telemetry.i_rms_a)
+        .where(Telemetry.machine_id == machine_id)
+        .order_by(Telemetry.time.desc())
+        .limit(3)
+    )
+    newest_first = list(result.scalars().all())
+    past = list(reversed(newest_first[1:]))
+    return past[-2:]
+
+
+def _waste_threshold_seconds(meta: dict) -> float:
+    settings = get_settings()
+    if settings.pulse_waste_seconds is not None:
+        return float(settings.pulse_waste_seconds)
+    waste = meta.get("waste_detection") or {}
+    if waste.get("enabled"):
+        return float(waste.get("duration_seconds", 300))
+    return 0.0
+
+
+async def _classify(
+    db: AsyncSession,
+    machine: Machine,
+    i_rms_a: float,
+    kw_est: float,
+    latest: MachineLatest | None,
+    now: datetime,
+) -> tuple[str, float, str]:
+    gmm_id = gmm_machine_id(machine.machine_type, machine.name)
+    if gmm_id and gmm_available():
+        try:
+            history = await _recent_history(db, machine.id)
+            instant, confidence, version, meta = predict_gmm_instant(gmm_id, i_rms_a, history)
+            waste_cfg = meta.get("waste_detection") or {}
+            if waste_cfg.get("enabled") and instant == "IDLE" and latest:
+                threshold = _waste_threshold_seconds(meta)
+                if threshold > 0 and latest.state in ("IDLE", "WASTE") and latest.state_since:
+                    since = latest.state_since
+                    if since.tzinfo is None:
+                        since = since.replace(tzinfo=UTC)
+                    if (now - since).total_seconds() >= threshold:
+                        instant = "WASTE"
+            return instant, confidence, version
+        except Exception:
+            pass
+
+    raw = classify_current(i_rms_a, machine)
+    candidate = refine_waste(raw, kw_est, machine)
+    confidence = 0.85 if candidate == "WASTE" else 0.95
+    return candidate, confidence, "rules-v1"
 
 
 async def apply_pulse(
@@ -44,14 +97,12 @@ async def apply_pulse(
     Update machine latest state with debounce.
     Returns (state, confidence, state_changed).
     """
-    settings = get_settings()
     now = now or datetime.now(UTC)
-    raw = classify_current(i_rms_a, machine)
-    candidate = refine_waste(raw, kw_est, machine)
-    confidence = 0.85 if candidate == "WASTE" else 0.95
-
     result = await db.execute(select(MachineLatest).where(MachineLatest.machine_id == machine.id))
     latest = result.scalar_one_or_none()
+
+    candidate, confidence, version = await _classify(db, machine, i_rms_a, kw_est, latest, now)
+
     if latest is None:
         return candidate, confidence, True
 
@@ -59,12 +110,13 @@ async def apply_pulse(
     if candidate == current:
         latest.pending_state = None
         latest.pending_since = None
+        latest.model_version = version
         return current, latest.state_confidence or confidence, False
 
-    # Debounce: require sustained candidate
     if latest.pending_state != candidate:
         latest.pending_state = candidate
         latest.pending_since = now
+        latest.model_version = version
         return current, latest.state_confidence or confidence, False
 
     pending_since = latest.pending_since or now
@@ -73,7 +125,6 @@ async def apply_pulse(
     if now - pending_since < timedelta(seconds=DEBOUNCE_SECONDS):
         return current, latest.state_confidence or confidence, False
 
-    # Commit state change
     open_evt = await db.execute(
         select(MachineStateEvent)
         .where(MachineStateEvent.machine_id == machine.id, MachineStateEvent.ended_at.is_(None))
@@ -89,7 +140,7 @@ async def apply_pulse(
             machine_id=machine.id,
             state=candidate,
             confidence=confidence,
-            model_version=settings.model_version,
+            model_version=version,
             started_at=now,
         )
     )
@@ -98,7 +149,7 @@ async def apply_pulse(
     latest.state_since = now
     latest.pending_state = None
     latest.pending_since = None
-    latest.model_version = settings.model_version
+    latest.model_version = version
     return candidate, confidence, True
 
 

@@ -136,12 +136,15 @@ class IngestBatch(BaseModel):
 class MachineLiveSnapshot(BaseModel):
     machine_id: UUID
     name: str
+    machine_type: str = "generic"
     state: str
     state_confidence: float
     kw_est: float
     i_rms_a: float
     waste_kw: float
     waste_inr_per_hr: float
+    inr_per_hr: float = 0.0
+    tariff_inr_per_kwh: float = 8.5
     last_seen: datetime | None
     model_version: str
     eligible_autocut: bool
@@ -154,6 +157,7 @@ class WasteRankItem(BaseModel):
     score: float
     waste_kwh: float
     waste_inr: float
+    waste_inr_per_hr: float = 0.0
     duration_min: float
     state: str
 

@@ -37,6 +37,8 @@ async def seed() -> dict:
                 await db.execute(select(Organization).where(Organization.slug == "demo-msme"))
             ).scalar_one()
             site = (await db.execute(select(Site).where(Site.org_id == org.id))).scalar_one()
+            await _ensure_laptop(db, site.id)
+            await db.commit()
             return {
                 "email": DEMO_EMAIL,
                 "password": DEMO_PASSWORD,
@@ -77,6 +79,7 @@ async def seed() -> dict:
             ("Compressor 2", "compressor", "esp32-comp-02", True, 0.4, 2.5, 12.0, 1.2),
             ("Hydraulic Press", "press", "esp32-press-01", False, 0.3, 2.0, 10.0, 0.5),
             ("Conveyor A", "conveyor", "esp32-conv-01", True, 0.2, 1.0, 4.0, 0.3),
+            ("Laptop Demo", "laptop", "esp32-laptop-01", True, 0.02, 0.18, 0.25, 0.04),
         ]
 
         now = datetime.now(UTC)
@@ -137,6 +140,49 @@ async def seed() -> dict:
             "site_id": str(site.id),
             "seeded": True,
         }
+
+
+async def _ensure_laptop(db, site_id) -> None:
+    found = await db.execute(select(Machine).where(Machine.device_id == "esp32-laptop-01"))
+    if found.scalar_one_or_none():
+        return
+    now = datetime.now(UTC)
+    m = Machine(
+        site_id=site_id,
+        name="Laptop Demo",
+        machine_type="laptop",
+        device_id="esp32-laptop-01",
+        eligible_autocut=True,
+        cut_policy="require_ack",
+        thr_off=0.02,
+        thr_idle=0.18,
+        thr_active=0.25,
+        baseline_idle_kw=0.04,
+        tariff_inr_per_kwh=8.5,
+    )
+    db.add(m)
+    await db.flush()
+    db.add(
+        MachineLatest(
+            machine_id=m.id,
+            time=now,
+            i_rms_a=0.0,
+            v_est=230.0,
+            kw_est=0.0,
+            temp_c=32.0,
+            device_id="esp32-laptop-01",
+            state="OFF",
+            state_since=now,
+        )
+    )
+    db.add(
+        Device(
+            site_id=site_id,
+            esp32_id="esp32-laptop-01",
+            pairing_code="PAIR01",
+            last_seen=now,
+        )
+    )
 
 
 if __name__ == "__main__":

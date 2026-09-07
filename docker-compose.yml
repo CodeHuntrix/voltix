@@ -35,6 +35,9 @@ services:
       JWT_SECRET: dev-change-me-voltix-jwt-secret-32chars
       EDGE_INGEST_API_KEY: voltix-edge-dev-key
       CORS_ORIGINS: http://localhost:5173,http://localhost:8081,http://127.0.0.1:5173
+      PYTHONPATH: /pulse
+      VOLTIX_MODELS_DIR: /pulse/models/pulse
+      PULSE_WASTE_SECONDS: "60"
     ports:
       - "8000:8000"
     depends_on:

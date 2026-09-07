@@ -64,7 +64,7 @@ from app.schemas import (
     UserOut,
     WasteRankItem,
 )
-from app.services.alerts import maybe_create_offline_alert, maybe_create_waste_alert
+from app.services.alerts import clear_alerts, maybe_create_waste_alert
 from app.services.pulse import apply_pulse, residual_waste_kw
 from app.services.ranker import rank_site_waste
 from app.services.ws import ws_manager
@@ -408,6 +408,7 @@ async def ingest_telemetry(
             ss = latest.state_since if latest.state_since.tzinfo else latest.state_since.replace(tzinfo=UTC)
             duration_min = max(0.0, (ts - ss).total_seconds() / 60.0)
         waste_inr_hr = waste * machine.tariff_inr_per_kwh
+        await clear_alerts(db, machine.id, "offline")
         await maybe_create_waste_alert(db, machine, state, duration_min, waste_inr_hr)
 
         site_broadcasts.setdefault(machine.site_id, []).append(
@@ -446,25 +447,28 @@ async def site_live(
     )
     out: list[MachineLiveSnapshot] = []
     for machine, latest in result.all():
-        await maybe_create_offline_alert(db, machine, latest)
         waste = latest.waste_kw if latest else 0.0
+        kw_est = latest.kw_est if latest else 0.0
+        tariff = machine.tariff_inr_per_kwh
         out.append(
             MachineLiveSnapshot(
                 machine_id=machine.id,
                 name=machine.name,
+                machine_type=machine.machine_type,
                 state=(latest.state if latest else "OFF"),
                 state_confidence=(latest.state_confidence if latest else 1.0),
-                kw_est=(latest.kw_est if latest else 0.0),
+                kw_est=kw_est,
                 i_rms_a=(latest.i_rms_a if latest else 0.0),
                 waste_kw=waste,
-                waste_inr_per_hr=waste * machine.tariff_inr_per_kwh,
+                waste_inr_per_hr=waste * tariff,
+                inr_per_hr=kw_est * tariff,
+                tariff_inr_per_kwh=tariff,
                 last_seen=(latest.time if latest else None),
                 model_version=(latest.model_version if latest else settings.model_version),
                 eligible_autocut=machine.eligible_autocut,
                 cut_policy=machine.cut_policy,
             )
         )
-    await db.commit()
     return out
 
 
@@ -704,12 +708,11 @@ async def edge_ack_command(
 
 # ---- M&V ----
 async def _sum_kwh(db: AsyncSession, site_id: UUID, start: datetime, end: datetime) -> float:
-    # Approximate energy from telemetry avg kw * hours (honest CT estimate)
+    hours = max((end - start).total_seconds() / 3600.0, 0.0)
     result = await db.execute(
         text(
             """
-            SELECT COALESCE(AVG(t.kw_est), 0) AS avg_kw,
-                   EXTRACT(EPOCH FROM (:end_ts - :start_ts)) / 3600.0 AS hours
+            SELECT COALESCE(AVG(t.kw_est), 0) AS avg_kw
             FROM telemetry t
             JOIN machines m ON m.id = t.machine_id
             WHERE m.site_id = :site_id
@@ -719,7 +722,7 @@ async def _sum_kwh(db: AsyncSession, site_id: UUID, start: datetime, end: dateti
         {"site_id": site_id, "start_ts": start, "end_ts": end},
     )
     row = result.mappings().one()
-    return float(row["avg_kw"] or 0) * float(row["hours"] or 0)
+    return float(row["avg_kw"] or 0) * hours
 
 
 @router.post("/sites/{site_id}/mv/baselines", response_model=MvBaselineOut)

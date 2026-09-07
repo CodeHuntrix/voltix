@@ -9,9 +9,12 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { MachineArt } from "@/components/MachineArt";
 import { Shell } from "@/components/Shell";
-import { api, stateColor } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { stateBadgeClass } from "@/lib/machineArt";
+import { formatInr, liveInrPerHr } from "@/lib/money";
 
 export function MachinePage() {
   const { machineId } = useParams({ from: "/machines/$machineId" });
@@ -33,79 +36,140 @@ export function MachinePage() {
     queryFn: () => api.states(token, machineId),
   });
 
-  const m = (live.data ?? []).find((x) => x.machine_id === machineId);
+  const m = (live.data ?? []).find(
+    (x: { machine_id: string }) => x.machine_id === machineId,
+  );
+  const tariff = m?.tariff_inr_per_kwh ?? 8.5;
+  const chart = (telemetry.data ?? []).map(
+    (p: { time: string; kw_est: number }) => ({
+      time: p.time,
+      inr_hr: p.kw_est * tariff,
+      kw_est: p.kw_est,
+    }),
+  );
+  const burn = m
+    ? liveInrPerHr({
+        inr_per_hr: m.inr_per_hr,
+        kw_est: m.kw_est,
+        tariff_inr_per_kwh: m.tariff_inr_per_kwh,
+      })
+    : 0;
 
   return (
     <Shell>
       <div className="mb-6">
-        <h1 className="text-xl font-semibold">{m?.name ?? "Machine"}</h1>
-        <p className="text-sm text-ink-muted">
-          Live CT estimate · not billing-grade metering
+        <h1 className="text-2xl font-semibold tracking-tight text-white">
+          {m?.name ?? "Machine"}
+        </h1>
+        <p className="mt-1 text-sm text-white/45">
+          Live floor spend · CT estimate, not a billing meter
         </p>
       </div>
 
       {m && (
-        <div className="flex flex-wrap gap-3 mb-6">
-          <span
-            className={`text-xs font-semibold uppercase text-white px-2.5 py-1 rounded ${stateColor(m.state)}`}
-          >
-            {m.state}
-          </span>
-          <span className="text-sm font-mono">{m.kw_est.toFixed(2)} kW</span>
-          <span className="text-sm text-ink-muted font-mono">{m.i_rms_a.toFixed(2)} A</span>
-          {m.waste_kw > 0 && (
-            <span className="text-sm text-danger font-mono">
-              waste ₹{m.waste_inr_per_hr.toFixed(0)}/hr
+        <div className="mb-6 grid items-center gap-5 sm:grid-cols-[200px_1fr]">
+          <div className="machine-card overflow-hidden rounded-2xl p-3">
+            <div className="machine-well flex h-40 items-end justify-center pb-2">
+              <MachineArt
+                machineType={m.machine_type}
+                alt={m.name}
+                className="relative z-[1] h-[96%] w-auto max-w-[94%] object-contain object-bottom"
+              />
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase ${stateBadgeClass(m.state)}`}
+            >
+              {m.state}
             </span>
-          )}
+            <span className="font-mono text-2xl font-semibold text-white">
+              {formatInr(
+                m.state === "WASTE" && m.waste_inr_per_hr > 0
+                  ? m.waste_inr_per_hr
+                  : burn,
+              )}
+              <span className="ml-1 text-sm font-medium text-white/40">/hr</span>
+            </span>
+            <span className="text-sm text-white/45">
+              {m.kw_est.toFixed(2)} kW · {m.i_rms_a.toFixed(1)} A
+              {m.model_version ? ` · ${m.model_version}` : ""}
+            </span>
+          </div>
         </div>
       )}
 
-      <div className="rounded-lg border border-line bg-surface-elevated p-4 shadow-panel mb-6 h-72">
-        <h2 className="text-sm font-semibold text-ink-muted mb-3">kW estimate</h2>
-        {(telemetry.data ?? []).length ? (
+      <div className="glass-card mb-6 h-72 rounded-3xl p-4">
+        <h2 className="mb-3 text-sm font-semibold text-white/70">₹ / hour</h2>
+        {chart.length ? (
           <ResponsiveContainer width="100%" height="90%">
-            <LineChart data={telemetry.data}>
-              <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" />
+            <LineChart data={chart}>
+              <CartesianGrid
+                stroke="rgba(148,163,184,0.15)"
+                strokeDasharray="3 3"
+              />
               <XAxis
                 dataKey="time"
                 tickFormatter={(v) => new Date(v).toLocaleTimeString()}
                 minTickGap={40}
-                stroke="#64748b"
+                stroke="#94a3b8"
                 fontSize={11}
               />
-              <YAxis stroke="#64748b" fontSize={11} />
+              <YAxis stroke="#94a3b8" fontSize={11} />
               <Tooltip
                 labelFormatter={(v) => new Date(String(v)).toLocaleString()}
-                contentStyle={{ borderRadius: 8, borderColor: "#e2e8f0" }}
+                formatter={(value: number) => [formatInr(value), "₹/hr"]}
+                contentStyle={{
+                  borderRadius: 12,
+                  borderColor: "rgba(255,255,255,0.1)",
+                  background: "#161b22",
+                  color: "#fff",
+                }}
               />
-              <Line type="monotone" dataKey="kw_est" stroke="#0C5CAB" dot={false} strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="inr_hr"
+                stroke="#38bdf8"
+                dot={false}
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-ink-muted text-sm">No telemetry yet.</p>
+          <p className="text-sm text-white/45">No telemetry yet.</p>
         )}
       </div>
 
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted mb-3">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/45">
           State timeline
         </h2>
         <ul className="space-y-2">
-          {(states.data ?? []).map((s) => (
-            <li
-              key={s.id}
-              className="rounded-md border border-line bg-surface-elevated px-4 py-2 flex justify-between text-sm"
-            >
-              <span className="font-medium">{s.state}</span>
-              <span className="font-mono text-ink-muted">
-                {new Date(s.started_at).toLocaleString()}
-                {s.ended_at ? ` → ${new Date(s.ended_at).toLocaleTimeString()}` : " · open"}
-              </span>
-            </li>
-          ))}
+          {(states.data ?? [])
+            .slice(0, 12)
+            .map(
+              (s: {
+                id: string;
+                state: string;
+                started_at: string;
+                ended_at?: string | null;
+              }) => (
+                <li
+                  key={s.id}
+                  className="glass-card flex justify-between rounded-2xl px-4 py-2.5 text-sm"
+                >
+                  <span className="font-medium text-white">{s.state}</span>
+                  <span className="font-mono text-white/45">
+                    {new Date(s.started_at).toLocaleString()}
+                    {s.ended_at
+                      ? ` → ${new Date(s.ended_at).toLocaleTimeString()}`
+                      : " · open"}
+                  </span>
+                </li>
+              ),
+            )}
           {!(states.data ?? []).length && (
-            <li className="text-ink-muted text-sm">No state events yet.</li>
+            <li className="text-sm text-white/45">No state events yet.</li>
           )}
         </ul>
       </section>

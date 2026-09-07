@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="g" x1="120" y1="80" x2="400" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#94a3b8"/><stop offset="1" stop-color="#334155"/>
+    </linearGradient>
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <g filter="url(#s)">
+    <ellipse cx="256" cy="420" rx="140" ry="22" fill="#000" opacity="0.35"/>
+    <rect x="150" y="200" width="212" height="180" rx="28" fill="url(#g)"/>
+    <rect x="170" y="140" width="80" height="70" rx="12" fill="#64748b"/>
+    <circle cx="210" cy="155" r="22" fill="#0C5CAB"/>
+    <circle cx="210" cy="155" r="10" fill="#38bdf8"/>
+    <rect x="280" y="160" width="70" height="40" rx="8" fill="#475569"/>
+    <rect x="300" y="120" width="28" height="50" rx="6" fill="#94a3b8"/>
+    <path d="M160 260h190" stroke="#0f172a" stroke-width="3" opacity="0.35"/>
+    <path d="M160 300h190" stroke="#0f172a" stroke-width="3" opacity="0.35"/>
+  </g>
+</svg>
