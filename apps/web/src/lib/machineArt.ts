@@ -4,13 +4,15 @@ export type MachineArtKey =
   | "cnc"
   | "press"
   | "conveyor"
+  | "laptop"
   | "motor"
   | "generic";
 
 export function artKeyFromType(machineType?: string | null): MachineArtKey {
   const t = (machineType ?? "generic").toLowerCase();
   if (t.includes("compress")) return "compressor";
-  if (t.includes("laptop") || t.includes("charger")) return "motor";
+  // Dedicated laptop/charger art — never reuse motor / generic factory assets
+  if (t.includes("laptop") || t.includes("charger")) return "laptop";
   if (t.includes("cnc") || t.includes("lathe") || t.includes("mill"))
     return "cnc";
   if (t.includes("press")) return "press";
@@ -44,11 +46,10 @@ export function typeLabel(machineType?: string | null): string {
       return "PRESS";
     case "conveyor":
       return "CONV";
+    case "laptop":
+      return "LAPTOP";
     case "motor":
-      return (machineType ?? "").toLowerCase().includes("laptop") ||
-        (machineType ?? "").toLowerCase().includes("charger")
-        ? "LAPTOP"
-        : "MOTOR";
+      return "MOTOR";
     default:
       return "LOAD";
   }

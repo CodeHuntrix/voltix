@@ -15,6 +15,13 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SignupRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=72)
+    full_name: str = Field(min_length=2, max_length=200)
+    shop_name: str = Field(min_length=2, max_length=200)
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 
@@ -120,11 +127,11 @@ class DevicePairRequest(BaseModel):
 
 class IngestPoint(BaseModel):
     device_id: str
-    machine_id: UUID
+    machine_id: UUID | None = None
     ts: datetime
     i_rms_a: float
     v_nominal: float
-    pf_assumed: float
+    pf_assumed: float = 0.85
     kw_est: float
     temp_c: float | None = None
 
@@ -160,6 +167,13 @@ class WasteRankItem(BaseModel):
     waste_inr_per_hr: float = 0.0
     duration_min: float
     state: str
+    rank: int = 0
+    primary_metric: str = "waste_inr_per_hr"
+    explain: str = ""
+    reason_code: str = ""
+    suggested_action: str = ""
+    autocut_annotation: str = "not_assessed"
+    rule_version: str = "rules-ranker-v1"
 
 
 class AlertOut(BaseModel):

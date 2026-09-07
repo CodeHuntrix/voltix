@@ -15,6 +15,9 @@ CLOUD_URL = os.getenv("CLOUD_URL", "http://localhost:8000").rstrip("/")
 API_KEY = os.getenv("EDGE_INGEST_API_KEY", "voltix-edge-dev-key")
 INTERVAL = float(os.getenv("SIM_INTERVAL", "2.0"))
 SITE_BOOTSTRAP = os.getenv("SIM_USE_SEED", "1") == "1"
+SKIP_DEVICES = {
+    s.strip() for s in os.getenv("SIM_SKIP_DEVICES", "").split(",") if s.strip()
+}
 
 # Fallback static map filled after seed discovery
 MACHINES: list[dict] = []
@@ -141,7 +144,11 @@ async def run() -> None:
     async with httpx.AsyncClient(timeout=15.0) as http:
         while True:
             t = time.time() - t0
-            points = [sample(m, t) for m in MACHINES]
+            points = [
+                sample(m, t)
+                for m in MACHINES
+                if (m.get("device_id") or "") not in SKIP_DEVICES
+            ]
             try:
                 resp = await http.post(
                     f"{CLOUD_URL}/api/v1/ingest/telemetry",

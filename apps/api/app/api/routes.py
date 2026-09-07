@@ -1,8 +1,10 @@
 from datetime import UTC, datetime
-from uuid import UUID
+from uuid import UUID, uuid4
+import re
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -59,18 +61,68 @@ from app.schemas import (
     RefreshRequest,
     SiteCreate,
     SiteOut,
+    SignupRequest,
     StateEventOut,
     TokenPair,
     UserOut,
     WasteRankItem,
 )
 from app.services.alerts import clear_alerts, maybe_create_waste_alert
-from app.services.pulse import apply_pulse, residual_waste_kw
+from app.services.drift import evaluate_drift_safe
+from app.services.pulse import apply_pulse, recent_current_history, residual_waste_kw
 from app.services.ranker import rank_site_waste
 from app.services.ws import ws_manager
 
 router = APIRouter()
 settings = get_settings()
+
+_TYPE_DEFAULTS: dict[str, dict] = {
+    "cnc": {
+        "thr_off": 0.5,
+        "thr_idle": 3.0,
+        "thr_active": 8.0,
+        "baseline_idle_kw": 0.6,
+        "eligible_autocut": False,
+        "cut_policy": "suggest",
+    },
+    "compressor": {
+        "thr_off": 0.4,
+        "thr_idle": 2.5,
+        "thr_active": 12.0,
+        "baseline_idle_kw": 1.2,
+        "eligible_autocut": True,
+        "cut_policy": "require_ack",
+    },
+    "press": {
+        "thr_off": 0.3,
+        "thr_idle": 2.0,
+        "thr_active": 10.0,
+        "baseline_idle_kw": 0.5,
+        "eligible_autocut": False,
+        "cut_policy": "suggest",
+    },
+    "conveyor": {
+        "thr_off": 0.2,
+        "thr_idle": 1.0,
+        "thr_active": 4.0,
+        "baseline_idle_kw": 0.3,
+        "eligible_autocut": True,
+        "cut_policy": "require_ack",
+    },
+    "laptop": {
+        "thr_off": 0.02,
+        "thr_idle": 0.18,
+        "thr_active": 0.25,
+        "baseline_idle_kw": 0.04,
+        "eligible_autocut": True,
+        "cut_policy": "require_ack",
+    },
+}
+
+
+def _slugify(name: str) -> str:
+    base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:40]
+    return f"{base or 'shop'}-{uuid4().hex[:6]}"
 
 
 def _user_out(user: User) -> UserOut:
@@ -119,6 +171,35 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)) -> Token
     user = result.scalar_one_or_none()
     if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(401, "Invalid credentials")
+    return TokenPair(
+        access_token=create_access_token(user.id),
+        refresh_token=create_refresh_token(user.id),
+    )
+
+
+@router.post("/auth/signup", response_model=TokenPair)
+async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)) -> TokenPair:
+    email = body.email.lower()
+    taken = await db.execute(select(User).where(User.email == email))
+    if taken.scalar_one_or_none():
+        raise HTTPException(409, "Email already registered")
+    org = Organization(name=body.shop_name, slug=_slugify(body.shop_name))
+    db.add(org)
+    await db.flush()
+    user = User(
+        email=email,
+        full_name=body.full_name,
+        hashed_password=hash_password(body.password),
+    )
+    db.add(user)
+    await db.flush()
+    db.add(Membership(user_id=user.id, org_id=org.id, role="owner"))
+    db.add(Site(org_id=org.id, name=f"{body.shop_name} floor", timezone="Asia/Kolkata"))
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(409, "Email or shop slug already taken") from exc
     return TokenPair(
         access_token=create_access_token(user.id),
         refresh_token=create_refresh_token(user.id),
@@ -238,23 +319,47 @@ async def create_machine(
 ) -> Machine:
     site = await _site_or_404(db, site_id)
     assert_role(user, site.org_id, "supervisor")
-    machine = Machine(site_id=site_id, **body.model_dump())
+    payload = body.model_dump()
+    defaults = _TYPE_DEFAULTS.get((payload.get("machine_type") or "").lower(), {})
+    for key, value in defaults.items():
+        if key == "eligible_autocut":
+            continue
+        if key in payload and payload[key] == MachineCreate.model_fields[key].default:
+            payload[key] = value
+    if not payload.get("device_id"):
+        payload["device_id"] = f"{payload.get('machine_type') or 'load'}-{uuid4().hex[:8]}"
+    if payload.get("eligible_autocut"):
+        payload["cut_policy"] = "require_ack"
+    elif defaults.get("cut_policy"):
+        payload["cut_policy"] = defaults["cut_policy"]
+    machine = Machine(site_id=site_id, **payload)
     db.add(machine)
     await db.flush()
+    now = datetime.now(UTC)
     db.add(
         MachineLatest(
             machine_id=machine.id,
-            time=datetime.now(UTC),
+            time=now,
             i_rms_a=0.0,
             v_est=machine.v_nominal,
             kw_est=0.0,
             temp_c=None,
             device_id=machine.device_id or "unpaired",
             state="OFF",
-            state_since=datetime.now(UTC),
+            state_since=now,
         )
     )
-    await db.commit()
+    if machine.device_id:
+        existing_dev = await db.execute(select(Device).where(Device.esp32_id == machine.device_id))
+        if existing_dev.scalar_one_or_none():
+            await db.rollback()
+            raise HTTPException(409, "That CT / device id is already paired")
+        db.add(Device(site_id=site_id, esp32_id=machine.device_id, pairing_code="PAIR"))
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(409, "That CT / device id is already paired") from exc
     await db.refresh(machine)
     return machine
 
@@ -349,14 +454,19 @@ async def ingest_telemetry(
     site_broadcasts: dict[UUID, list[dict]] = {}
 
     for point in body.points:
-        machine = await db.get(Machine, point.machine_id)
+        machine = None
+        if point.machine_id:
+            machine = await db.get(Machine, point.machine_id)
+        if machine is None:
+            found = await db.execute(select(Machine).where(Machine.device_id == point.device_id))
+            machine = found.scalar_one_or_none()
         if not machine:
             continue
         ts = point.ts if point.ts.tzinfo else point.ts.replace(tzinfo=UTC)
         db.add(
             Telemetry(
                 time=ts,
-                machine_id=point.machine_id,
+                machine_id=machine.id,
                 i_rms_a=point.i_rms_a,
                 v_est=point.v_nominal,
                 kw_est=point.kw_est,
@@ -366,12 +476,12 @@ async def ingest_telemetry(
         )
 
         result = await db.execute(
-            select(MachineLatest).where(MachineLatest.machine_id == point.machine_id)
+            select(MachineLatest).where(MachineLatest.machine_id == machine.id)
         )
         latest = result.scalar_one_or_none()
         if latest is None:
             latest = MachineLatest(
-                machine_id=point.machine_id,
+                machine_id=machine.id,
                 time=ts,
                 i_rms_a=point.i_rms_a,
                 v_est=point.v_nominal,
@@ -410,6 +520,15 @@ async def ingest_telemetry(
         waste_inr_hr = waste * machine.tariff_inr_per_kwh
         await clear_alerts(db, machine.id, "offline")
         await maybe_create_waste_alert(db, machine, state, duration_min, waste_inr_hr)
+        history_i = await recent_current_history(db, machine.id)
+        await evaluate_drift_safe(
+            db,
+            machine,
+            state=state,
+            i_rms_a=point.i_rms_a,
+            temp_c=point.temp_c,
+            history_i=history_i,
+        )
 
         site_broadcasts.setdefault(machine.site_id, []).append(
             {

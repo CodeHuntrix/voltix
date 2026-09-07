@@ -1,6 +1,7 @@
 services:
   db:
     image: timescale/timescaledb:latest-pg16
+    pull_policy: missing
     environment:
       POSTGRES_USER: voltix
       POSTGRES_PASSWORD: voltix
@@ -17,6 +18,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    pull_policy: missing
     ports:
       - "6379:6379"
     healthcheck:
@@ -26,17 +28,21 @@ services:
       retries: 20
 
   api:
+    image: voltix-api:latest
+    pull_policy: build
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+      pull: false
     environment:
       DATABASE_URL: postgresql+asyncpg://voltix:voltix@db:5432/voltix
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET: dev-change-me-voltix-jwt-secret-32chars
       EDGE_INGEST_API_KEY: voltix-edge-dev-key
       CORS_ORIGINS: http://localhost:5173,http://localhost:8081,http://127.0.0.1:5173
-      PYTHONPATH: /pulse
+      PYTHONPATH: /pulse:/condition
       VOLTIX_MODELS_DIR: /pulse/models/pulse
+      VOLTIX_CONDITION_MODELS_DIR: /condition/models/drift
       PULSE_WASTE_SECONDS: "60"
     ports:
       - "8000:8000"
@@ -47,9 +53,12 @@ services:
         condition: service_healthy
 
   worker:
+    image: voltix-worker:latest
+    pull_policy: build
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
+      pull: false
     environment:
       DATABASE_URL: postgresql+asyncpg://voltix:voltix@db:5432/voltix
       REDIS_URL: redis://redis:6379/0
@@ -62,16 +71,28 @@ services:
         condition: service_started
 
   simulator:
+    image: voltix-simulator:latest
+    pull_policy: build
     build:
       context: .
       dockerfile: apps/simulator/Dockerfile
+      pull: false
     environment:
       CLOUD_URL: http://api:8000
       EDGE_INGEST_API_KEY: voltix-edge-dev-key
       SIM_INTERVAL: "2"
+      SIM_SKIP_DEVICES: ${SIM_SKIP_DEVICES:-esp32-laptop-01}
     depends_on:
       api:
         condition: service_started
+
+  mqtt:
+    image: public.ecr.aws/docker/library/eclipse-mosquitto:2
+    pull_policy: missing
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./apps/edge/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
 
 volumes:
   voltix_pg:

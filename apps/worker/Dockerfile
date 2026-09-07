@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM public.ecr.aws/docker/library/python:3.12-slim
 WORKDIR /work
 COPY apps/api /work/api
 COPY apps/worker/worker.py /work/worker.py

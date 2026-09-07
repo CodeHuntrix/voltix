@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 type Props = {
-  to?: string;
+  to?: string | null;
   size?: "sm" | "md" | "lg";
 };
 

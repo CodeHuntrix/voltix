@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { Link } from "@tanstack/react-router";
 import { Shell } from "@/components/Shell";
 import { MachineCard } from "@/components/MachineCard";
 import { visibleAlerts } from "@/lib/alerts";
@@ -93,7 +94,11 @@ export function DashboardPage() {
 
           {!live.isLoading && !(live.data ?? []).length && (
             <p className="mt-6 text-white/45">
-              No machines yet — add them from setup.
+              No machines yet —{" "}
+              <Link to="/onboarding" className="text-sky-300 hover:text-white">
+                add them in setup
+              </Link>
+              .
             </p>
           )}
         </div>
@@ -118,6 +123,9 @@ export function DashboardPage() {
                     {r.state} · {formatMinutes(r.duration_min)} ·{" "}
                     {formatInr(perHr)}/hr
                   </p>
+                  {r.explain && (
+                    <p className="mt-1 text-[11px] leading-snug text-white/35">{r.explain}</p>
+                  )}
                 </div>
               );
             })}

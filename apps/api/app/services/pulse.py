@@ -32,16 +32,21 @@ def refine_waste(raw_state: str, kw_est: float, machine: Machine) -> str:
     return raw_state
 
 
-async def _recent_history(db: AsyncSession, machine_id: UUID) -> list[float]:
+async def recent_current_history(db: AsyncSession, machine_id: UUID) -> list[float]:
+    """Past current samples for GMM / drift features (excludes newest if already written)."""
     result = await db.execute(
         select(Telemetry.i_rms_a)
         .where(Telemetry.machine_id == machine_id)
         .order_by(Telemetry.time.desc())
-        .limit(3)
+        .limit(16)
     )
     newest_first = list(result.scalars().all())
-    past = list(reversed(newest_first[1:]))
-    return past[-2:]
+    return list(reversed(newest_first[1:]))
+
+
+async def _recent_history(db: AsyncSession, machine_id: UUID) -> list[float]:
+    hist = await recent_current_history(db, machine_id)
+    return hist[-2:]
 
 
 def _waste_threshold_seconds(meta: dict) -> float:
@@ -63,18 +68,25 @@ async def _classify(
     now: datetime,
 ) -> tuple[str, float, str]:
     gmm_id = gmm_machine_id(machine.machine_type, machine.name)
-    if gmm_id and gmm_available():
+    # Live CT on laptop/charger is shop-floor amp range — use rules, not charger GMM.
+    charger_live_ct = gmm_id == "laptop_charger_01" and i_rms_a > 0.5
+    if gmm_id and gmm_available() and not charger_live_ct:
         try:
             history = await _recent_history(db, machine.id)
             instant, confidence, version, meta = predict_gmm_instant(gmm_id, i_rms_a, history)
-            waste_cfg = meta.get("waste_detection") or {}
-            if waste_cfg.get("enabled") and instant == "IDLE" and latest:
-                threshold = _waste_threshold_seconds(meta)
-                if threshold > 0 and latest.state in ("IDLE", "WASTE") and latest.state_since:
-                    since = latest.state_since
-                    if since.tzinfo is None:
-                        since = since.replace(tzinfo=UTC)
-                    if (now - since).total_seconds() >= threshold:
+            if instant == "IDLE":
+                refined = refine_waste("IDLE", kw_est, machine)
+                if refined == "WASTE":
+                    threshold = _waste_threshold_seconds(meta)
+                    if threshold <= 0:
+                        threshold = float(get_settings().pulse_waste_seconds or 60)
+                    if latest and latest.state in ("IDLE", "WASTE") and latest.state_since:
+                        since = latest.state_since
+                        if since.tzinfo is None:
+                            since = since.replace(tzinfo=UTC)
+                        if (now - since).total_seconds() >= threshold:
+                            instant = "WASTE"
+                    elif threshold <= 0:
                         instant = "WASTE"
             return instant, confidence, version
         except Exception:

@@ -21,6 +21,7 @@ if _PULSE_ROOT and str(_PULSE_ROOT) not in sys.path:
 GMM_TYPE_KEYS = {
     "compressor": "compressor_01",
     "air_compressor": "compressor_01",
+    "aircompressor": "compressor_01",
     "laptop": "laptop_charger_01",
     "laptop_charger": "laptop_charger_01",
     "charger": "laptop_charger_01",
@@ -33,8 +34,11 @@ def gmm_machine_id(machine_type: str | None, name: str | None = None) -> str | N
         return "compressor_01"
     if "laptop" in blob or "charger" in blob:
         return "laptop_charger_01"
-    key = (machine_type or "").lower().strip()
-    return GMM_TYPE_KEYS.get(key)
+    key = (machine_type or "").lower().strip().replace(" ", "_")
+    mapped = GMM_TYPE_KEYS.get(key)
+    if mapped:
+        return mapped
+    return None
 
 
 def gmm_available() -> bool:

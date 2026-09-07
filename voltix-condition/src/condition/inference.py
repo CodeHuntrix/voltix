@@ -15,18 +15,23 @@ _SCORER_CACHE: Dict[str, DriftScorer] = {}
 
 def _get_models_dir() -> str:
     """Returns absolute path to models/drift directory."""
-    if os.environ.get("VOLTIX_MODELS_DIR"):
-        return os.environ["VOLTIX_MODELS_DIR"]
-    
+    condition_env = os.environ.get("VOLTIX_CONDITION_MODELS_DIR")
+    if condition_env:
+        return condition_env
+
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     candidate_1 = os.path.join(base_dir, "models", "drift")
     if os.path.exists(candidate_1):
         return candidate_1
-        
+
     candidate_2 = os.path.join(base_dir, "voltix-condition", "models", "drift")
     if os.path.exists(candidate_2):
         return candidate_2
-        
+
+    docker = "/condition/models/drift"
+    if os.path.exists(docker):
+        return docker
+
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models", "drift"))
 
 

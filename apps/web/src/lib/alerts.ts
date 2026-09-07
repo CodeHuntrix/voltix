@@ -36,6 +36,9 @@ export function visibleAlerts<T extends AlertRow>(
       if (a.alert_type === "waste" && machine && machine.state !== "WASTE") {
         return false;
       }
+      if (a.alert_type === "drift" && machine && machine.state !== "ACTIVE") {
+        return false;
+      }
       const key = `${a.alert_type}:${a.machine_id ?? "site"}`;
       if (seen.has(key)) return false;
       seen.add(key);

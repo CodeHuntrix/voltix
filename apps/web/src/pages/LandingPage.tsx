@@ -39,6 +39,12 @@ export function LandingPage() {
           <a href="#machines" className="hidden text-sm text-white/50 hover:text-white sm:inline">
             Machines
           </a>
+          <a
+            href="/login?signup=1"
+            className="hidden text-sm text-white/50 hover:text-white sm:inline"
+          >
+            Create shop
+          </a>
           <Link
             to="/login"
             className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary-hover"
