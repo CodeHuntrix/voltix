@@ -33,3 +33,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["app*"]
+
+[tool.pyright]
+extraPaths = [
+  "../../voltix-condition/src",
+  "../../voltix-pulse/src"
+]
+

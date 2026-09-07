@@ -1,0 +1,10 @@
+# Raw large datasets
+*.csv.gz
+MetroPT3*.csv
+
+# Python bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
