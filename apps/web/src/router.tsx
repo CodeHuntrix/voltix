@@ -3,7 +3,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  redirect,
+  // redirect, // DEV: unused while auth bypass is active
 } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { LandingPage } from "@/pages/LandingPage";
@@ -16,10 +16,19 @@ import { AutocutPage } from "@/pages/AutocutPage";
 import { MvPage } from "@/pages/MvPage";
 import { AdminPage } from "@/pages/AdminPage";
 
+// DEV BYPASS: Auth guard disabled for UI-only development on feat/ui-landing-dashboard
+// Uncomment below and remove the stub when backend is ready
+// function requireAuth() {
+//   const { accessToken, siteId } = useAuth.getState();
+//   if (!accessToken || !siteId) {
+//     throw redirect({ to: "/login" });
+//   }
+// }
 function requireAuth() {
-  const { accessToken, siteId } = useAuth.getState();
-  if (!accessToken || !siteId) {
-    throw redirect({ to: "/login" });
+  // Stub: inject mock auth so dashboard data queries don't break
+  const state = useAuth.getState();
+  if (!state.accessToken) {
+    useAuth.setState({ accessToken: "dev-mock-token", siteId: "dev-site", orgId: "dev-org" });
   }
 }
 
