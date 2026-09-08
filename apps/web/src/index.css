@@ -90,3 +90,48 @@ body {
 .machine-art {
   mix-blend-mode: lighten;
 }
+
+/* ─── Landing page ───────────────────────────────────────────────── */
+
+.lp-root {
+  font-family: "IBM Plex Sans", Inter, system-ui, -apple-system, sans-serif;
+}
+
+/* Background: dark navy + subtle grid + blue/teal glows */
+.lp-bg {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(22, 136, 255, 0.13), transparent 30%),
+    radial-gradient(circle at 90% 6%, rgba(32, 215, 199, 0.07), transparent 28%),
+    linear-gradient(rgba(255, 255, 255, 0.021) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.021) 1px, transparent 1px),
+    #02070d;
+  background-size: auto, auto, 48px 48px, 48px 48px, auto;
+}
+
+/* Telemetry glass card */
+.lp-telemetry-card {
+  border: 1px solid rgba(100, 190, 255, 0.25);
+  background: rgba(5, 14, 23, 0.86);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+}
+
+/* Hero fade-up on load */
+.lp-fade-up {
+  animation: lpFadeUp 0.7s ease both;
+}
+
+@keyframes lpFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

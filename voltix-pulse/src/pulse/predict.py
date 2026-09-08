@@ -17,7 +17,7 @@ import joblib
 import numpy as np
 from typing import Any
 
-from src.pulse.model_registry import (
+from .model_registry import (
     resolve_machine_id,
     get_machine_config
 )
@@ -71,16 +71,16 @@ def compute_causal_features_online(
     Uses strictly causal past observations (at most 2 past samples + current sample = 3 samples).
     """
     if history_i is None or len(history_i) == 0:
-        samples = [float(i_rms_a)]
+        samples = [i_rms_a]
     elif len(history_i) == 1:
-        samples = [float(history_i[-1]), float(i_rms_a)]
+        samples = [history_i[-1], i_rms_a]
     else:
-        samples = [float(history_i[-2]), float(history_i[-1]), float(i_rms_a)]
+        samples = [history_i[-2], history_i[-1], i_rms_a]
         
     mean_val = float(np.mean(samples))
     std_val = float(np.std(samples, ddof=1)) if len(samples) > 1 else 0.0
     
-    return np.array([[float(i_rms_a), mean_val, std_val]], dtype=np.float64)
+    return np.array([[i_rms_a, mean_val, std_val]], dtype=np.float64)
 
 
 def predict_pulse_state(
