@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { MachineArt } from "@/components/MachineArt";
-import { stateBadgeClass, typeLabel } from "@/lib/machineArt";
+import { stateBadgeClass, stateRailClass, typeLabel } from "@/lib/machineArt";
 import { formatInr, liveInrPerHr } from "@/lib/money";
 
 type Props = {
@@ -15,13 +15,6 @@ type Props = {
   tariffInrPerKwh?: number;
   eligibleAutocut?: boolean;
   modelVersion?: string;
-};
-
-const rail: Record<string, string> = {
-  ACTIVE: "bg-emerald-500",
-  IDLE: "bg-amber-400",
-  WASTE: "bg-red-500",
-  OFF: "bg-slate-500",
 };
 
 export function MachineCard({
@@ -52,7 +45,7 @@ export function MachineCard({
       params={{ machineId }}
       className="machine-card group relative flex flex-col overflow-hidden rounded-2xl"
     >
-      <span className={`absolute inset-y-0 left-0 w-[3px] ${rail[state] ?? rail.OFF}`} aria-hidden="true" />
+      <span className={`absolute inset-y-0 left-0 w-[3px] ${stateRailClass(state)}`} aria-hidden="true" />
 
       <div className="flex items-start justify-between gap-2 px-4 pt-4 pl-5">
         <span className="font-mono text-[11px] tracking-[0.18em] text-white/40">{typeLabel(machineType)}</span>

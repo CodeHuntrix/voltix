@@ -12,23 +12,28 @@ export default {
         warning: "#f59e0b",
         danger: "#ef4444",
         surface: {
-          DEFAULT: "#f8fafc",
-          elevated: "#ffffff",
-          muted: "#f1f5f9",
+          DEFAULT: "#07090c",
+          elevated: "#10141a",
+          muted: "#161b22",
         },
         ink: {
-          DEFAULT: "#0f172a",
-          muted: "#64748b",
+          DEFAULT: "#ffffff",
+          muted: "#94a3b8",
         },
         line: {
-          DEFAULT: "#e2e8f0",
-          strong: "#cbd5e1",
+          DEFAULT: "rgba(255, 255, 255, 0.08)",
+          strong: "rgba(255, 255, 255, 0.16)",
         },
         state: {
           off: "#94a3b8",
           active: "#10b981",
           idle: "#f59e0b",
           waste: "#ef4444",
+        },
+        severity: {
+          critical: "#ef4444",
+          warning: "#f59e0b",
+          info: "#0C5CAB",
         },
       },
       fontFamily: {

@@ -1,4 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ListSkeleton } from "@/components/CardSkeleton";
+import { EmptyState, InlineError } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
 import { Shell } from "@/components/Shell";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -49,35 +52,41 @@ export function MvPage() {
 
   return (
     <Shell>
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">M&V</h1>
-          <p className="text-sm text-white/45">Baseline vs intervention · savings in rupees</p>
-          {createReport.isError && (
-            <p className="mt-1 text-sm text-red-400">{(createReport.error as Error).message}</p>
-          )}
+      <PageHeader
+        title="M&V"
+        description="Baseline vs intervention · savings in rupees"
+        actions={
+          <>
+            <button
+              type="button"
+              className="rounded-full bg-primary px-4 py-2 text-sm text-white hover:bg-primary-hover disabled:opacity-50"
+              disabled={createReport.isPending}
+              onClick={() => createReport.mutate()}
+            >
+              {createReport.isPending ? "Generating…" : "Generate report"}
+            </button>
+            <button
+              type="button"
+              className="glass-card rounded-full px-4 py-2 text-sm text-white"
+              onClick={() => exportCsv.mutate()}
+            >
+              Export CSV
+            </button>
+          </>
+        }
+      />
+      {createReport.isError && (
+        <div className="mb-4">
+          <InlineError>{(createReport.error as Error).message}</InlineError>
         </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="rounded-full bg-primary px-4 py-2 text-sm text-white hover:bg-primary-hover disabled:opacity-50"
-            disabled={createReport.isPending}
-            onClick={() => createReport.mutate()}
-          >
-            {createReport.isPending ? "Generating…" : "Generate report"}
-          </button>
-          <button
-            type="button"
-            className="glass-card rounded-full px-4 py-2 text-sm text-white"
-            onClick={() => exportCsv.mutate()}
-          >
-            Export CSV
-          </button>
-        </div>
-      </div>
+      )}
 
       <section className="mb-8">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/45">Baselines</h2>
+        {baselines.isLoading && !(baselines.data ?? []).length && <ListSkeleton rows={2} />}
+        {baselines.isError && !(baselines.data ?? []).length && (
+          <InlineError>Failed to load baselines</InlineError>
+        )}
         <ul className="space-y-2">
           {(baselines.data ?? []).map((b: any) => (
             <li key={b.id} className="glass-card rounded-2xl px-4 py-3 text-sm">
@@ -85,43 +94,54 @@ export function MvPage() {
               <span className="ml-3 font-mono text-white/45">{b.baseline_kwh} kWh</span>
             </li>
           ))}
+          {!baselines.isLoading && !baselines.isError && !(baselines.data ?? []).length && (
+            <li>
+              <EmptyState>No baselines yet.</EmptyState>
+            </li>
+          )}
         </ul>
       </section>
 
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/45">Reports</h2>
-        <div className="glass-card overflow-hidden rounded-2xl">
-          <table className="w-full text-sm">
-            <thead className="text-left text-white/45">
-              <tr>
-                <th className="px-4 py-3">Period</th>
-                <th className="px-4 py-3">Intervention kWh</th>
-                <th className="px-4 py-3">Savings kWh</th>
-                <th className="px-4 py-3">Savings</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(reports.data ?? []).map((r: any) => (
-                <tr key={r.id} className="border-t border-white/10">
-                  <td className="px-4 py-3 font-mono text-xs text-white/70">
-                    {new Date(r.intervention_start).toLocaleDateString()} –{" "}
-                    {new Date(r.intervention_end).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-white">{r.intervention_kwh.toFixed(1)}</td>
-                  <td className="px-4 py-3 font-mono text-white">{r.savings_kwh.toFixed(1)}</td>
-                  <td className="px-4 py-3 font-mono text-emerald-400">{formatInr(r.savings_inr)}</td>
-                </tr>
-              ))}
-              {!(reports.data ?? []).length && (
+        {reports.isLoading && !(reports.data ?? []).length && <ListSkeleton rows={2} />}
+        {reports.isError && !(reports.data ?? []).length && (
+          <InlineError>Failed to load reports</InlineError>
+        )}
+        {((reports.data ?? []).length > 0 || (!reports.isLoading && !reports.isError)) && (
+          <div className="glass-card overflow-hidden rounded-2xl">
+            <table className="w-full text-sm">
+              <thead className="text-left text-white/45">
                 <tr>
-                  <td colSpan={4} className="px-4 py-6 text-white/45">
-                    No reports yet.
-                  </td>
+                  <th className="px-4 py-3">Period</th>
+                  <th className="px-4 py-3">Intervention kWh</th>
+                  <th className="px-4 py-3">Savings kWh</th>
+                  <th className="px-4 py-3">Savings</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {(reports.data ?? []).map((r: any) => (
+                  <tr key={r.id} className="border-t border-white/10">
+                    <td className="px-4 py-3 font-mono text-xs text-white/70">
+                      {new Date(r.intervention_start).toLocaleDateString()} –{" "}
+                      {new Date(r.intervention_end).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-white">{r.intervention_kwh.toFixed(1)}</td>
+                    <td className="px-4 py-3 font-mono text-white">{r.savings_kwh.toFixed(1)}</td>
+                    <td className="px-4 py-3 font-mono text-emerald-400">{formatInr(r.savings_inr)}</td>
+                  </tr>
+                ))}
+                {!(reports.data ?? []).length && (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-6">
+                      <EmptyState>No reports yet.</EmptyState>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </Shell>
   );

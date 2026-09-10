@@ -2,13 +2,13 @@ import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
+import { InlineError } from "@/components/EmptyState";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { fieldClass } from "@/lib/form";
 
 const DEMO_EMAIL = "owner@voltix.demo";
 const DEMO_PASSWORD = "voltix-demo";
-const fieldClass =
-  "mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-primary";
 
 export function LoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">(() =>
@@ -147,11 +147,11 @@ export function LoginPage() {
               minLength={isSignup ? 6 : undefined}
             />
           </label>
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <InlineError>{error}</InlineError>}
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-full bg-primary py-2.5 font-medium text-white hover:bg-primary-hover"
+            className="w-full rounded-full bg-primary py-2.5 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
           >
             {pending
               ? isSignup
