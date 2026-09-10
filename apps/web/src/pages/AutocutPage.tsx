@@ -1,4 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ListSkeleton } from "@/components/CardSkeleton";
+import { EmptyState, InlineError } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
 import { Shell } from "@/components/Shell";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -33,13 +36,15 @@ export function AutocutPage() {
 
   return (
     <Shell>
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight text-white">AutoCut</h1>
-      <p className="mb-6 text-sm text-white/45">
-        Eligible loads only (≤10A relay). Confirm the circuit before actuation.
-      </p>
+      <PageHeader
+        title="AutoCut"
+        description="Eligible loads only (≤10A relay). Confirm the circuit before actuation."
+      />
 
       <section className="mb-8">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/45">Suggest cut</h2>
+        {live.isLoading && !eligible.length && <ListSkeleton rows={1} />}
+        {live.isError && !eligible.length && <InlineError>Failed to load machines</InlineError>}
         <div className="flex flex-wrap gap-2">
           {eligible.map((m: { machine_id: string; name: string; state: string }) => (
             <button
@@ -51,14 +56,16 @@ export function AutocutPage() {
               {m.name} · {m.state}
             </button>
           ))}
-          {!eligible.length && (
-            <p className="text-sm text-white/45">No eligible machines on this site.</p>
+          {!live.isLoading && !live.isError && !eligible.length && (
+            <EmptyState>No eligible machines on this site.</EmptyState>
           )}
         </div>
       </section>
 
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/45">Command queue</h2>
+        {cmds.isLoading && !(cmds.data ?? []).length && <ListSkeleton rows={2} />}
+        {cmds.isError && !(cmds.data ?? []).length && <InlineError>Failed to load commands</InlineError>}
         <ul className="space-y-2">
           {(cmds.data ?? []).map((c: any) => (
             <li key={c.id} className="glass-card flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3">
@@ -85,8 +92,10 @@ export function AutocutPage() {
               )}
             </li>
           ))}
-          {!(cmds.data ?? []).length && (
-            <li className="text-sm text-white/45">No AutoCut commands yet.</li>
+          {!cmds.isLoading && !cmds.isError && !(cmds.data ?? []).length && (
+            <li>
+              <EmptyState>No AutoCut commands yet.</EmptyState>
+            </li>
           )}
         </ul>
       </section>

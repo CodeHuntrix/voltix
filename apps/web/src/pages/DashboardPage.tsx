@@ -1,12 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { Shell } from "@/components/Shell";
+import { CardSkeleton } from "@/components/CardSkeleton";
+import { EmptyState, InlineError } from "@/components/EmptyState";
 import { MachineCard } from "@/components/MachineCard";
+import { PageHeader } from "@/components/PageHeader";
+import { Shell } from "@/components/Shell";
+import { StatusBadge } from "@/components/StatusBadge";
 import { visibleAlerts } from "@/lib/alerts";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { stateBadgeClass } from "@/lib/machineArt";
 import { formatInr, formatMinutes } from "@/lib/money";
 
 export function DashboardPage() {
@@ -57,49 +60,54 @@ export function DashboardPage() {
 
   return (
     <Shell>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-white">
-            Machines
-          </h1>
-          <p className="mt-1 text-sm text-white/45">Live spend on the floor</p>
-        </div>
-      </div>
+      <PageHeader title="Machines" description="Live spend on the floor" />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_300px]">
         <div>
-          {live.isLoading && <p className="text-white/50">Loading machines…</p>}
+          {live.isLoading && !(live.data ?? []).length && (
+            <div
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              aria-busy="true"
+              aria-label="Loading machines"
+            >
+              {Array.from({ length: 3 }, (_, i) => (
+                <CardSkeleton key={i} />
+              ))}
+            </div>
+          )}
           {live.isError && !(live.data ?? []).length && (
-            <p className="text-red-400">Failed to load live data</p>
+            <InlineError>Failed to load live data</InlineError>
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {(live.data ?? []).map((m: any) => (
-              <MachineCard
-                key={m.machine_id}
-                machineId={m.machine_id}
-                name={m.name}
-                machineType={m.machine_type}
-                state={m.state}
-                kwEst={m.kw_est}
-                iRmsA={m.i_rms_a}
-                wasteInrPerHr={m.waste_inr_per_hr}
-                inrPerHr={m.inr_per_hr}
-                tariffInrPerKwh={m.tariff_inr_per_kwh}
-                eligibleAutocut={m.eligible_autocut}
-                modelVersion={m.model_version}
-              />
-            ))}
-          </div>
+          {!!(live.data ?? []).length && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {(live.data ?? []).map((m: any) => (
+                <MachineCard
+                  key={m.machine_id}
+                  machineId={m.machine_id}
+                  name={m.name}
+                  machineType={m.machine_type}
+                  state={m.state}
+                  kwEst={m.kw_est}
+                  iRmsA={m.i_rms_a}
+                  wasteInrPerHr={m.waste_inr_per_hr}
+                  inrPerHr={m.inr_per_hr}
+                  tariffInrPerKwh={m.tariff_inr_per_kwh}
+                  eligibleAutocut={m.eligible_autocut}
+                  modelVersion={m.model_version}
+                />
+              ))}
+            </div>
+          )}
 
-          {!live.isLoading && !(live.data ?? []).length && (
-            <p className="mt-6 text-white/45">
+          {!live.isLoading && !live.isError && !(live.data ?? []).length && (
+            <EmptyState>
               No machines yet —{" "}
               <Link to="/onboarding" className="text-sky-300 hover:text-white">
                 add them in setup
               </Link>
               .
-            </p>
+            </EmptyState>
           )}
         </div>
 
@@ -143,11 +151,9 @@ export function DashboardPage() {
                 key={a.id}
                 className="flex items-start gap-2 border-t border-white/10 py-3 first:border-t-0 first:pt-0"
               >
-                <span
-                  className={`mt-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${stateBadgeClass(a.severity === "critical" ? "WASTE" : "IDLE")}`}
-                >
+                <StatusBadge severity={a.severity} className="mt-0.5 rounded-full">
                   {a.alert_type}
-                </span>
+                </StatusBadge>
                 <p className="text-xs text-white/70">{a.title}</p>
               </div>
             ))}

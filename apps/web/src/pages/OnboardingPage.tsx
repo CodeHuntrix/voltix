@@ -2,9 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
+import { InlineError } from "@/components/EmptyState";
 import { MachineArt } from "@/components/MachineArt";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { fieldClass } from "@/lib/form";
 
 type CatalogItem = {
   type: string;
@@ -156,7 +158,7 @@ export function OnboardingPage() {
                   <label className="block flex-1 text-sm">
                     <span className="text-white/45">Name</span>
                     <input
-                      className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 outline-none focus:border-primary"
+                      className={fieldClass}
                       value={pick.name}
                       onChange={(e) => updatePick(pick.id, { name: e.target.value })}
                     />
@@ -164,7 +166,7 @@ export function OnboardingPage() {
                   <label className="block flex-1 text-sm">
                     <span className="text-white/45">CT / device id (optional)</span>
                     <input
-                      className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 font-mono text-sm outline-none focus:border-primary"
+                      className={`${fieldClass} font-mono text-sm`}
                       value={pick.deviceId}
                       placeholder="leave blank to auto-assign"
                       onChange={(e) => updatePick(pick.id, { deviceId: e.target.value })}
@@ -173,6 +175,7 @@ export function OnboardingPage() {
                   <label className="flex items-center gap-2 pb-2 text-sm">
                     <input
                       type="checkbox"
+                      className="h-4 w-4 accent-primary"
                       checked={pick.autocut}
                       onChange={(e) => updatePick(pick.id, { autocut: e.target.checked })}
                     />
@@ -191,7 +194,11 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        {error && (
+          <div className="mt-4">
+            <InlineError>{error}</InlineError>
+          </div>
+        )}
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <button

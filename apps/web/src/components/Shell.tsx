@@ -19,33 +19,38 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <div className="ops-shell min-h-screen text-white">
       <div className="ops-shell-bg pointer-events-none fixed inset-0" aria-hidden="true" />
       <aside className="glass-rail fixed left-4 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-2 rounded-full p-2">
-        {nav.map((item) => {
-          const active = path.startsWith(item.to);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              title={item.label}
-              className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
-                active ? "bg-primary text-white" : "text-white/55 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
-                <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-              </svg>
-            </Link>
-          );
-        })}
+        <nav aria-label="Ops" className="flex flex-col gap-2">
+          {nav.map((item) => {
+            const active = path.startsWith(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
+                className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
+                  active ? "bg-primary text-white" : "text-white/55 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                </svg>
+              </Link>
+            );
+          })}
+        </nav>
         <button
           type="button"
           title="Sign out"
+          aria-label="Sign out"
           onClick={() => {
             logout();
             void navigate({ to: "/login" });
           }}
           className="mt-2 flex h-11 w-11 items-center justify-center rounded-full text-white/40 hover:bg-white/10 hover:text-white"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -57,7 +62,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       <div className="relative z-10 pl-20 pr-4 md:pl-24 md:pr-8">
         <header className="flex items-center justify-between gap-4 py-8">
-          <BrandMark size="lg" />
+          <BrandMark size="md" />
           <div className="glass-pill hidden items-center gap-3 px-4 py-2 text-sm text-white/70 sm:flex">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             Live telemetry

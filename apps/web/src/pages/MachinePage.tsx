@@ -9,11 +9,14 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { CardSkeleton, ListSkeleton } from "@/components/CardSkeleton";
+import { EmptyState, InlineError } from "@/components/EmptyState";
 import { MachineArt } from "@/components/MachineArt";
+import { PageHeader } from "@/components/PageHeader";
 import { Shell } from "@/components/Shell";
+import { StatusBadge } from "@/components/StatusBadge";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { stateBadgeClass } from "@/lib/machineArt";
 import { formatInr, liveInrPerHr } from "@/lib/money";
 
 export function MachinePage() {
@@ -57,14 +60,24 @@ export function MachinePage() {
 
   return (
     <Shell>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-white">
-          {m?.name ?? "Machine"}
-        </h1>
-        <p className="mt-1 text-sm text-white/45">
-          Live floor spend · CT estimate, not a billing meter
-        </p>
-      </div>
+      <PageHeader
+        title={m?.name ?? "Machine"}
+        description="Live floor spend · CT estimate, not a billing meter"
+      />
+
+      {live.isLoading && !m && (
+        <div className="mb-6 max-w-xs" aria-busy="true" aria-label="Loading machine">
+          <CardSkeleton />
+        </div>
+      )}
+      {live.isError && !m && (
+        <div className="mb-6">
+          <InlineError>Failed to load machine</InlineError>
+        </div>
+      )}
+      {!live.isLoading && !live.isError && !m && (
+        <EmptyState className="mb-6">Machine not found on this site.</EmptyState>
+      )}
 
       {m && (
         <div className="mb-6 grid items-center gap-5 sm:grid-cols-[200px_1fr]">
@@ -78,11 +91,9 @@ export function MachinePage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <span
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase ${stateBadgeClass(m.state)}`}
-            >
+            <StatusBadge state={m.state} className="rounded-full px-2.5 py-1 text-xs">
               {m.state}
-            </span>
+            </StatusBadge>
             <span className="font-mono text-2xl font-semibold text-white">
               {formatInr(
                 m.state === "WASTE" && m.waste_inr_per_hr > 0
@@ -101,6 +112,9 @@ export function MachinePage() {
 
       <div className="glass-card mb-6 h-72 rounded-3xl p-4">
         <h2 className="mb-3 text-sm font-semibold text-white/70">₹ / hour</h2>
+        {telemetry.isLoading && !chart.length && (
+          <div className="h-48 animate-pulse rounded-2xl bg-white/5" aria-busy="true" />
+        )}
         {chart.length ? (
           <ResponsiveContainer width="100%" height="90%">
             <LineChart data={chart}>
@@ -135,15 +149,16 @@ export function MachinePage() {
               />
             </LineChart>
           </ResponsiveContainer>
-        ) : (
-          <p className="text-sm text-white/45">No telemetry yet.</p>
-        )}
+        ) : !telemetry.isLoading ? (
+          <EmptyState>No telemetry yet.</EmptyState>
+        ) : null}
       </div>
 
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/45">
           State timeline
         </h2>
+        {states.isLoading && !(states.data ?? []).length && <ListSkeleton rows={3} />}
         <ul className="space-y-2">
           {(states.data ?? [])
             .slice(0, 12)
@@ -168,8 +183,10 @@ export function MachinePage() {
                 </li>
               ),
             )}
-          {!(states.data ?? []).length && (
-            <li className="text-sm text-white/45">No state events yet.</li>
+          {!states.isLoading && !(states.data ?? []).length && (
+            <li>
+              <EmptyState>No state events yet.</EmptyState>
+            </li>
           )}
         </ul>
       </section>

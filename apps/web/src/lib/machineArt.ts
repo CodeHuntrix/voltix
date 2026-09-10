@@ -55,15 +55,52 @@ export function typeLabel(machineType?: string | null): string {
   }
 }
 
+export const MACHINE_STATES = ["ACTIVE", "IDLE", "WASTE", "OFF"] as const;
+export type MachineState = (typeof MACHINE_STATES)[number];
+
+/** Shared ACTIVE / IDLE / WASTE / OFF chrome — badges, rails, alert severity. */
+export const STATE_TONES: Record<
+  MachineState,
+  { rail: string; badge: string }
+> = {
+  ACTIVE: {
+    rail: "bg-state-active",
+    badge: "bg-state-active/90 text-white",
+  },
+  IDLE: {
+    rail: "bg-state-idle",
+    badge: "bg-state-idle/90 text-black",
+  },
+  WASTE: {
+    rail: "bg-state-waste",
+    badge: "bg-state-waste/90 text-white",
+  },
+  OFF: {
+    rail: "bg-state-off",
+    badge: "bg-state-off/80 text-white",
+  },
+};
+
+export function normalizeState(state?: string | null): MachineState {
+  const key = (state ?? "OFF").toUpperCase();
+  return MACHINE_STATES.includes(key as MachineState)
+    ? (key as MachineState)
+    : "OFF";
+}
+
+export function stateRailClass(state: string): string {
+  return STATE_TONES[normalizeState(state)].rail;
+}
+
 export function stateBadgeClass(state: string): string {
-  switch (state) {
-    case "ACTIVE":
-      return "bg-emerald-500/90 text-white";
-    case "IDLE":
-      return "bg-amber-500/90 text-black";
-    case "WASTE":
-      return "bg-red-500/90 text-white";
-    default:
-      return "bg-slate-500/80 text-white";
-  }
+  return STATE_TONES[normalizeState(state)].badge;
+}
+
+/** Alert severity shares the same state map: critical → WASTE, else IDLE. */
+export function severityToState(severity?: string | null): MachineState {
+  return (severity ?? "").toLowerCase() === "critical" ? "WASTE" : "IDLE";
+}
+
+export function severityBadgeClass(severity?: string | null): string {
+  return stateBadgeClass(severityToState(severity));
 }
