@@ -68,9 +68,15 @@ async def _classify(
     now: datetime,
 ) -> tuple[str, float, str]:
     gmm_id = gmm_machine_id(machine.machine_type, machine.name)
-    # Live CT on laptop/charger is shop-floor amp range — use rules, not charger GMM.
-    charger_live_ct = gmm_id == "laptop_charger_01" and i_rms_a > 0.5
-    if gmm_id and gmm_available() and not charger_live_ct:
+    # Laptop demo: OFF below thr_off, IDLE below thr_idle, ACTIVE when charging.
+    if gmm_id == "laptop_charger_01":
+        if i_rms_a <= machine.thr_off:
+            return "OFF", 0.99, "demo-laptop-v1"
+        if i_rms_a <= machine.thr_idle:
+            return "IDLE", 0.99, "demo-laptop-v1"
+        return "ACTIVE", 0.99, "demo-laptop-v1"
+
+    if gmm_id and gmm_available():
         try:
             history = await _recent_history(db, machine.id)
             instant, confidence, version, meta = predict_gmm_instant(gmm_id, i_rms_a, history)
@@ -125,17 +131,19 @@ async def apply_pulse(
         latest.model_version = version
         return current, latest.state_confidence or confidence, False
 
-    if latest.pending_state != candidate:
-        latest.pending_state = candidate
-        latest.pending_since = now
-        latest.model_version = version
-        return current, latest.state_confidence or confidence, False
+    debounce = 0 if version.startswith("demo-laptop") else DEBOUNCE_SECONDS
+    if debounce > 0:
+        if latest.pending_state != candidate:
+            latest.pending_state = candidate
+            latest.pending_since = now
+            latest.model_version = version
+            return current, latest.state_confidence or confidence, False
 
-    pending_since = latest.pending_since or now
-    if pending_since.tzinfo is None:
-        pending_since = pending_since.replace(tzinfo=UTC)
-    if now - pending_since < timedelta(seconds=DEBOUNCE_SECONDS):
-        return current, latest.state_confidence or confidence, False
+        pending_since = latest.pending_since or now
+        if pending_since.tzinfo is None:
+            pending_since = pending_since.replace(tzinfo=UTC)
+        if now - pending_since < timedelta(seconds=debounce):
+            return current, latest.state_confidence or confidence, False
 
     open_evt = await db.execute(
         select(MachineStateEvent)

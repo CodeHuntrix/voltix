@@ -32,6 +32,7 @@ BUFFER_PATH = Path(os.getenv("EDGE_BUFFER_PATH", "edge_buffer.sqlite"))
 FLUSH_INTERVAL = float(os.getenv("FLUSH_INTERVAL", "2.0"))
 COMMAND_POLL = float(os.getenv("COMMAND_POLL", "3.0"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "50"))
+MAX_ATTEMPTS = int(os.getenv("MAX_BUFFER_ATTEMPTS", "100"))
 DEVICE_MAP = {
     k.strip(): v.strip()
     for pair in os.getenv("DEVICE_MAP", "machine_01=esp32-laptop-01").split(",")
@@ -149,6 +150,14 @@ class EdgeGateway:
                 "UPDATE buffer SET attempts = attempts + 1 WHERE id = ?",
                 [(i,) for i in ids],
             )
+            # Purge poisoned records exceeding retry attempts to avoid stalling buffer queue
+            poison_rows = self.conn.execute(
+                "SELECT id FROM buffer WHERE attempts >= ?", (MAX_ATTEMPTS,)
+            ).fetchall()
+            if poison_rows:
+                drop_ids = [r[0] for r in poison_rows]
+                self.conn.executemany("DELETE FROM buffer WHERE id = ?", [(i,) for i in drop_ids])
+                log.error("dropped %s poisoned buffer records exceeding %s attempts", len(drop_ids), MAX_ATTEMPTS)
             self.conn.commit()
             log.warning("cloud down — buffering (%s). err=%s", self.buffer_count(), exc)
             return 0

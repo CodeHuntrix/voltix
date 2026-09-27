@@ -12,6 +12,7 @@ node_modules/
 apps/web/dist/
 apps/mobile/.expo/
 apps/mobile/dist/
+*.tsbuildinfo
 
 # Edge / local
 *.sqlite

@@ -4,6 +4,7 @@ import re
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -463,8 +464,9 @@ async def ingest_telemetry(
         if not machine:
             continue
         ts = point.ts if point.ts.tzinfo else point.ts.replace(tzinfo=UTC)
-        db.add(
-            Telemetry(
+        stmt = (
+            pg_insert(Telemetry)
+            .values(
                 time=ts,
                 machine_id=machine.id,
                 i_rms_a=point.i_rms_a,
@@ -473,7 +475,9 @@ async def ingest_telemetry(
                 temp_c=point.temp_c,
                 device_id=point.device_id,
             )
+            .on_conflict_do_nothing()
         )
+        await db.execute(stmt)
 
         result = await db.execute(
             select(MachineLatest).where(MachineLatest.machine_id == machine.id)
@@ -494,54 +498,56 @@ async def ingest_telemetry(
             db.add(latest)
             await db.flush()
 
-        latest.time = ts
-        latest.i_rms_a = point.i_rms_a
-        latest.v_est = point.v_nominal
-        latest.kw_est = point.kw_est
-        latest.temp_c = point.temp_c
-        latest.device_id = point.device_id
+        latest_time = latest.time if latest.time.tzinfo else latest.time.replace(tzinfo=UTC) if latest.time else None
+        if latest_time is None or ts >= latest_time:
+            latest.time = ts
+            latest.i_rms_a = point.i_rms_a
+            latest.v_est = point.v_nominal
+            latest.kw_est = point.kw_est
+            latest.temp_c = point.temp_c
+            latest.device_id = point.device_id
 
-        state, confidence, changed = await apply_pulse(db, machine, point.i_rms_a, point.kw_est, ts)
-        waste = residual_waste_kw(point.kw_est, state, machine)
-        latest.waste_kw = waste
-        latest.state = state
-        latest.state_confidence = confidence
+            state, confidence, changed = await apply_pulse(db, machine, point.i_rms_a, point.kw_est, ts)
+            waste = residual_waste_kw(point.kw_est, state, machine)
+            latest.waste_kw = waste
+            latest.state = state
+            latest.state_confidence = confidence
 
-        # Device last_seen
-        dev = await db.execute(select(Device).where(Device.esp32_id == point.device_id))
-        device = dev.scalar_one_or_none()
-        if device:
-            device.last_seen = ts
+            # Device last_seen
+            dev = await db.execute(select(Device).where(Device.esp32_id == point.device_id))
+            device = dev.scalar_one_or_none()
+            if device:
+                device.last_seen = ts
 
-        duration_min = 0.0
-        if latest.state_since:
-            ss = latest.state_since if latest.state_since.tzinfo else latest.state_since.replace(tzinfo=UTC)
-            duration_min = max(0.0, (ts - ss).total_seconds() / 60.0)
-        waste_inr_hr = waste * machine.tariff_inr_per_kwh
-        await clear_alerts(db, machine.id, "offline")
-        await maybe_create_waste_alert(db, machine, state, duration_min, waste_inr_hr)
-        history_i = await recent_current_history(db, machine.id)
-        await evaluate_drift_safe(
-            db,
-            machine,
-            state=state,
-            i_rms_a=point.i_rms_a,
-            temp_c=point.temp_c,
-            history_i=history_i,
-        )
+            duration_min = 0.0
+            if latest.state_since:
+                ss = latest.state_since if latest.state_since.tzinfo else latest.state_since.replace(tzinfo=UTC)
+                duration_min = max(0.0, (ts - ss).total_seconds() / 60.0)
+            waste_inr_hr = waste * machine.tariff_inr_per_kwh
+            await clear_alerts(db, machine.id, "offline")
+            await maybe_create_waste_alert(db, machine, state, duration_min, waste_inr_hr)
+            history_i = await recent_current_history(db, machine.id)
+            await evaluate_drift_safe(
+                db,
+                machine,
+                state=state,
+                i_rms_a=point.i_rms_a,
+                temp_c=point.temp_c,
+                history_i=history_i,
+            )
 
-        site_broadcasts.setdefault(machine.site_id, []).append(
-            {
-                "type": "telemetry",
-                "machine_id": str(machine.id),
-                "state": state,
-                "kw_est": point.kw_est,
-                "i_rms_a": point.i_rms_a,
-                "waste_kw": waste,
-                "changed": changed,
-                "ts": ts.isoformat(),
-            }
-        )
+            site_broadcasts.setdefault(machine.site_id, []).append(
+                {
+                    "type": "telemetry",
+                    "machine_id": str(machine.id),
+                    "state": state,
+                    "kw_est": point.kw_est,
+                    "i_rms_a": point.i_rms_a,
+                    "waste_kw": waste,
+                    "changed": changed,
+                    "ts": ts.isoformat(),
+                }
+            )
         accepted += 1
 
     await db.commit()

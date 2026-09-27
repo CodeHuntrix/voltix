@@ -24,29 +24,37 @@ export function MachinePage() {
   const live = useQuery({
     queryKey: ["live", siteId],
     queryFn: () => api.live(token, siteId),
-    refetchInterval: 4000,
+    refetchInterval: 2500,
   });
   const telemetry = useQuery({
     queryKey: ["telemetry", machineId],
     queryFn: () => api.telemetry(token, machineId),
-    refetchInterval: 4000,
+    refetchInterval: 2500,
   });
   const states = useQuery({
     queryKey: ["states", machineId],
     queryFn: () => api.states(token, machineId),
+    refetchInterval: 2500,
   });
 
   const m = (live.data ?? []).find(
     (x: { machine_id: string }) => x.machine_id === machineId,
   );
+  const isLaptop =
+    m?.machine_type === "laptop" ||
+    m?.name?.toLowerCase().includes("laptop");
   const tariff = m?.tariff_inr_per_kwh ?? 8.5;
-  const chart = (telemetry.data ?? []).map(
+  const rawChart = (telemetry.data ?? []).map(
     (p: { time: string; kw_est: number }) => ({
       time: p.time,
       inr_hr: p.kw_est * tariff,
       kw_est: p.kw_est,
     }),
   );
+  // Zoomed in for laptop: exclude any legacy non-laptop spikes (> ₹10/hr)
+  const chart = isLaptop
+    ? rawChart.filter((p: { inr_hr: number }) => p.inr_hr <= 10)
+    : rawChart;
   const burn = m
     ? liveInrPerHr({
         inr_per_hr: m.inr_per_hr,
@@ -88,6 +96,7 @@ export function MachinePage() {
                 m.state === "WASTE" && m.waste_inr_per_hr > 0
                   ? m.waste_inr_per_hr
                   : burn,
+                isLaptop ? 2 : 0,
               )}
               <span className="ml-1 text-sm font-medium text-white/40">/hr</span>
             </span>
@@ -100,7 +109,9 @@ export function MachinePage() {
       )}
 
       <div className="glass-card mb-6 h-72 rounded-3xl p-4">
-        <h2 className="mb-3 text-sm font-semibold text-white/70">₹ / hour</h2>
+        <h2 className="mb-3 text-sm font-semibold text-white/70">
+          ₹ / hour {isLaptop ? "(Zoomed ₹0 – ₹2)" : ""}
+        </h2>
         {chart.length ? (
           <ResponsiveContainer width="100%" height="90%">
             <LineChart data={chart}>
@@ -115,10 +126,30 @@ export function MachinePage() {
                 stroke="#94a3b8"
                 fontSize={11}
               />
-              <YAxis stroke="#94a3b8" fontSize={11} />
+              <YAxis
+                stroke="#94a3b8"
+                fontSize={11}
+                domain={
+                  isLaptop
+                    ? [
+                        0,
+                        (dataMax: number) => {
+                          if (!dataMax || dataMax <= 1.5) return 2;
+                          if (dataMax <= 4.0) return 5;
+                          return 10;
+                        },
+                      ]
+                    : [0, "auto"]
+                }
+                tickFormatter={(v) => `₹${v}`}
+                allowDecimals={true}
+              />
               <Tooltip
                 labelFormatter={(v) => new Date(String(v)).toLocaleString()}
-                formatter={(value: number) => [formatInr(value), "₹/hr"]}
+                formatter={(value: number) => [
+                  isLaptop ? `₹${Number(value).toFixed(2)}` : formatInr(value),
+                  "₹/hr",
+                ]}
                 contentStyle={{
                   borderRadius: 12,
                   borderColor: "rgba(255,255,255,0.1)",

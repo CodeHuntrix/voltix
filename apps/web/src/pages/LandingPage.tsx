@@ -41,7 +41,13 @@ const STEPS = [
     title: "Sense",
     desc: "Clip-on CT per load",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth={1.6}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-5 w-5"
+        stroke="currentColor"
+        strokeWidth={1.6}
+      >
         <circle cx="12" cy="12" r="3" />
         <path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4" />
         <path d="M3.5 3.5a14 14 0 0 0 0 17M20.5 3.5a14 14 0 0 1 0 17" />
@@ -53,7 +59,13 @@ const STEPS = [
     title: "Verify",
     desc: "OFF / ACTIVE / IDLE / WASTE",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth={1.6}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-5 w-5"
+        stroke="currentColor"
+        strokeWidth={1.6}
+      >
         <circle cx="11" cy="11" r="7" />
         <path d="m21 21-4.35-4.35" />
         <path d="M8 11h6M11 8v6" />
@@ -65,7 +77,13 @@ const STEPS = [
     title: "Decide",
     desc: "Rank in rupees",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth={1.6}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-5 w-5"
+        stroke="currentColor"
+        strokeWidth={1.6}
+      >
         <path d="M3 3v18h18" />
         <path d="m7 16 4-4 4 4 4-6" />
       </svg>
@@ -76,7 +94,13 @@ const STEPS = [
     title: "Act",
     desc: "Safe AutoCut or alert",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth={1.6}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-5 w-5"
+        stroke="currentColor"
+        strokeWidth={1.6}
+      >
         <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" />
       </svg>
     ),
@@ -86,7 +110,13 @@ const STEPS = [
     title: "Prove",
     desc: "M&V export",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth={1.6}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-5 w-5"
+        stroke="currentColor"
+        strokeWidth={1.6}
+      >
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
         <path d="M14 2v6h6M8 13h8M8 17h5" />
       </svg>
@@ -95,16 +125,22 @@ const STEPS = [
 ] as const;
 
 const VALUE_ITEMS = [
-  { value: "20–40%", label: "Potential energy waste reduction" },
-  { value: "₹ Lakhs", label: "Annual savings potential" },
+  { value: "20–40%", label: "Energy waste reduction" },
+  { value: "₹ Lakhs", label: "Annual savings per shop" },
   { value: "Plug & Play", label: "Retrofit in hours" },
-  { value: "Safer Ops", label: "AI-driven alerts" },
+  { value: "Safer Ops", label: "With AI-driven alerts" },
 ] as const;
 
 const DIFF_CARDS = [
   {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth={1.6}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-5 w-5"
+        stroke="currentColor"
+        strokeWidth={1.6}
+      >
         <rect x="2" y="3" width="20" height="14" rx="2" />
         <path d="M8 21h8M12 17v4" />
       </svg>
@@ -114,7 +150,13 @@ const DIFF_CARDS = [
   },
   {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth={1.6}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-5 w-5"
+        stroke="currentColor"
+        strokeWidth={1.6}
+      >
         <circle cx="12" cy="12" r="10" />
         <circle cx="12" cy="12" r="4" />
         <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
@@ -125,7 +167,13 @@ const DIFF_CARDS = [
   },
   {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth={1.6}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        className="h-5 w-5"
+        stroke="currentColor"
+        strokeWidth={1.6}
+      >
         <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" />
       </svg>
     ),
@@ -144,8 +192,17 @@ function MiniChart() {
   }, []);
 
   const pts = [
-    [0, 48], [25, 43], [48, 50], [70, 31], [95, 38],
-    [120, 27], [143, 34], [165, 22], [190, 35], [215, 26], [240, 30],
+    [0, 48],
+    [25, 43],
+    [48, 50],
+    [70, 31],
+    [95, 38],
+    [120, 27],
+    [143, 34],
+    [165, 22],
+    [190, 35],
+    [215, 26],
+    [240, 30],
   ]
     .map(([x, y]) => `${x},${y}`)
     .join(" ");
@@ -182,8 +239,15 @@ function VoltixLogo({ className = "h-9 w-9" }: { className?: string }) {
           <stop offset="100%" stopColor="#20D7C7" />
         </linearGradient>
       </defs>
-      <path d="M10 8 L26 8 L36 30 L46 8 L56 8 L38 48 L30 48 Z" fill="url(#vg)" />
-      <path d="M33 18 L25 35 H32 L28 50 L43 30 H36 Z" fill="white" opacity="0.92" />
+      <path
+        d="M10 8 L26 8 L36 30 L46 8 L56 8 L38 48 L30 48 Z"
+        fill="url(#vg)"
+      />
+      <path
+        d="M33 18 L25 35 H32 L28 50 L43 30 H36 Z"
+        fill="white"
+        opacity="0.92"
+      />
     </svg>
   );
 }
@@ -212,32 +276,45 @@ function Navbar() {
         }`}
       >
         {/* Brand */}
-        <Link to="/" className="flex shrink-0 items-center gap-3 hover:opacity-90">
+        <Link
+          to="/"
+          className="flex shrink-0 items-center gap-3 hover:opacity-90"
+        >
           <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1688ff]/30 bg-gradient-to-br from-[#1688ff]/20 to-[#20d7c7]/10">
             <VoltixLogo className="h-7 w-7" />
           </span>
           <span>
-            <span className="block text-lg font-bold tracking-tight text-white">Voltix</span>
-            <span className="block text-[10px] text-white/40">Energy ops for the shop floor</span>
+            <span className="block text-lg font-bold tracking-tight text-white">
+              Voltix
+            </span>
+            <span className="block text-[10px] text-white/40">
+              Energy ops for the shop floor
+            </span>
           </span>
         </Link>
 
         {/* Desktop links */}
         <div className="ml-auto hidden items-center gap-7 lg:flex">
-          {["#home", "#machines", "#how-it-works", "#impact", "#about"].map(
-            (href, i) => {
-              const labels = ["Home", "Machines", "How it works", "Impact", "About"];
-              return (
-                <a
-                  key={href}
-                  href={href}
-                  className="text-sm text-white/50 transition-colors hover:text-white"
-                >
-                  {labels[i]}
-                </a>
-              );
-            }
-          )}
+          {[
+            ["#home", "Home"],
+            ["#product", "Product"],
+            ["#machines", "Machines"],
+            ["#how-it-works", "How it works"],
+            ["#impact", "Impact"],
+            ["#about", "About"],
+          ].map(([href, label]) => (
+            <a
+              key={href}
+              href={href}
+              className={`text-sm transition-colors hover:text-white ${
+                href === "#home"
+                  ? "text-white underline decoration-[#1688ff] decoration-2 underline-offset-8"
+                  : "text-white/50"
+              }`}
+            >
+              {label}
+            </a>
+          ))}
         </div>
 
         {/* CTA */}
@@ -253,7 +330,9 @@ function Navbar() {
             className="group flex items-center gap-2 rounded-full bg-gradient-to-r from-[#147df2] to-[#0870d9] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(22,136,255,0.25)] transition-all hover:shadow-[0_10px_30px_rgba(22,136,255,0.4)] hover:-translate-y-0.5"
           >
             Open console
-            <span className="transition-transform group-hover:translate-x-1">→</span>
+            <span className="transition-transform group-hover:translate-x-1">
+              →
+            </span>
           </Link>
         </div>
 
@@ -264,11 +343,23 @@ function Navbar() {
           aria-label="Toggle menu"
         >
           {menuOpen ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              className="h-5 w-5"
+            >
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              className="h-5 w-5"
+            >
               <path d="M3 12h18M3 6h18M3 18h18" />
             </svg>
           )}
@@ -279,21 +370,28 @@ function Navbar() {
       {menuOpen && (
         <div className="mt-2 rounded-2xl border border-white/10 bg-[#050d16]/95 px-5 py-4 backdrop-blur-2xl lg:hidden">
           <div className="flex flex-col gap-4">
-            {["#home", "#machines", "#how-it-works", "#impact", "#about"].map((href, i) => {
-              const labels = ["Home", "Machines", "How it works", "Impact", "About"];
-              return (
-                <a
-                  key={href}
-                  href={href}
-                  onClick={() => setMenuOpen(false)}
-                  className="text-sm text-white/60 hover:text-white"
-                >
-                  {labels[i]}
-                </a>
-              );
-            })}
+            {[
+              ["#home", "Home"],
+              ["#product", "Product"],
+              ["#machines", "Machines"],
+              ["#how-it-works", "How it works"],
+              ["#impact", "Impact"],
+              ["#about", "About"],
+            ].map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setMenuOpen(false)}
+                className="text-sm text-white/60 hover:text-white"
+              >
+                {label}
+              </a>
+            ))}
             <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-4">
-              <Link to="/login" className="rounded-xl border border-white/12 py-2.5 text-center text-sm text-white/70">
+              <Link
+                to="/login"
+                className="rounded-xl border border-white/12 py-2.5 text-center text-sm text-white/70"
+              >
                 Sign in
               </Link>
               <Link
@@ -323,23 +421,15 @@ function LiveDot() {
 
 function HeroVisual() {
   return (
-    <div className="relative flex min-h-[560px] items-center justify-center">
-      {/* Glow */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="h-[380px] w-[380px] rounded-full bg-[#1688ff]/14 blur-[80px]" />
-      </div>
+    <div className="relative min-h-[420px] overflow-hidden rounded-[22px] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.45)] md:min-h-[560px]">
+      <img
+        src="/landing/hero-floor.png"
+        alt="CNC floor with live Voltix telemetry overlays"
+        className="absolute inset-0 h-full w-full object-cover object-center"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#02070d]/55 via-transparent to-[#02070d]/25" />
 
-      {/* Machine image */}
-      <div className="relative z-10 w-[68%] transition-transform duration-500 hover:scale-[1.025]">
-        <MachineArt
-          machineType="cnc"
-          alt="CNC machine monitored by Voltix"
-          className="machine-art w-full drop-shadow-[0_30px_50px_rgba(0,0,0,0.7)]"
-        />
-      </div>
-
-      {/* Top-left: main telemetry card */}
-      <div className="lp-telemetry-card absolute left-[2%] top-[12%] z-20 w-[230px]">
+      <div className="lp-telemetry-card absolute left-[4%] top-[10%] z-20 w-[min(230px,46%)]">
         <div className="flex items-center justify-between">
           <span className="text-[13px] font-semibold text-white">CNC-01</span>
           <span className="flex items-center gap-1.5 text-[10px] font-medium text-emerald-400">
@@ -361,8 +451,7 @@ function HeroVisual() {
         </div>
       </div>
 
-      {/* Top-right: live chart card */}
-      <div className="lp-telemetry-card absolute right-[1%] top-[6%] z-20 w-[210px]">
+      <div className="lp-telemetry-card absolute right-[3%] top-[6%] z-20 hidden w-[210px] sm:block">
         <div className="flex items-center justify-between text-[10px] text-white/50">
           <span>Live power (kW)</span>
           <span className="font-semibold text-white">4.2 kW</span>
@@ -372,28 +461,33 @@ function HeroVisual() {
         </div>
       </div>
 
-      {/* Right side: intelligence stack */}
-      <div className="absolute right-[-1%] top-[42%] z-20 flex w-[160px] flex-col gap-2">
+      <div className="absolute bottom-[10%] right-[3%] z-20 hidden w-[160px] flex-col gap-2 md:flex">
         {[
           { icon: "✦", label: "Pulse", sub: "Machine state" },
           { icon: "◌", label: "Condition", sub: "Drift detection" },
           { icon: "↗", label: "Waste", sub: "₹ loss in real time" },
-          { icon: "ϟ", label: "Action", sub: "AutoCut / safe" },
+          { icon: "ϟ", label: "Action", sub: "AutoCut (safe)" },
         ].map((item) => (
           <div
             key={item.label}
-            className="flex cursor-default items-center gap-2.5 rounded-xl border border-white/8 bg-[#040c14]/88 px-3 py-2.5 backdrop-blur-xl transition-all hover:-translate-x-1 hover:border-[#1688ff]/40"
+            className="flex items-center gap-2.5 rounded-xl border border-white/8 bg-[#040c14]/88 px-3 py-2.5 backdrop-blur-xl"
           >
             <span className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-lg bg-[#1688ff]/12 text-[14px] text-[#29a7ff]">
               {item.icon}
             </span>
             <div>
-              <p className="text-[11px] font-semibold text-white">{item.label}</p>
+              <p className="text-[11px] font-semibold text-white">
+                {item.label}
+              </p>
               <p className="text-[9px] text-white/40">{item.sub}</p>
             </div>
           </div>
         ))}
       </div>
+
+      <p className="lp-handwrite absolute bottom-4 left-5 z-20 text-[15px] text-white/80 md:bottom-6 md:left-8 md:text-[17px]">
+        Smarter machines, Brighter industries.
+      </p>
     </div>
   );
 }
@@ -402,29 +496,39 @@ function HeroVisual() {
 
 function Hero() {
   return (
-    <section id="home" className="relative z-10 mx-auto max-w-7xl px-6 pb-12 pt-16 md:pt-24">
-      <div className="grid items-center gap-10 lg:grid-cols-2">
-        {/* Copy */}
+    <section
+      id="home"
+      className="relative z-10 overflow-hidden pb-12 pt-10 md:pt-16"
+    >
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <img
+          src="/landing/hero-floor.png"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover object-[70%_center] opacity-35"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#02070d] via-[#02070d]/92 to-[#02070d]/55" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#02070d]/40 via-transparent to-[#02070d]" />
+      </div>
+
+      <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 lg:grid-cols-2">
         <div className="lp-fade-up">
-          <span className="inline-flex items-center rounded-full border border-[#1688ff]/35 bg-[#1688ff]/8 px-3 py-1.5 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
+          <span className="inline-flex items-center rounded-md border border-[#1688ff]/35 bg-[#1688ff]/8 px-3 py-1.5 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
             SMART AUTOMATION FOR MSMEs
           </span>
 
           <h1 className="mt-6 text-[clamp(48px,6.5vw,80px)] font-bold leading-[0.94] tracking-[-0.055em] text-white">
-            See the machine.
-            <span className="block bg-gradient-to-r from-[#1688ff] to-[#20d7c7] bg-clip-text text-transparent">
+            See the machine.{" "}
+            <span className="bg-gradient-to-r from-[#29a7ff] to-[#20d7c7] bg-clip-text text-transparent">
               Stop the waste.
             </span>
           </h1>
 
-          <p className="mt-6 text-xl font-medium text-white/80">
-            Real-time energy operations for the shop floor.
-          </p>
-
-          <p className="mt-3 max-w-[560px] text-[15px] leading-relaxed text-white/50">
-            Voltix helps MSME manufacturers monitor machine states, detect energy
-            waste, detect condition drift, and take safe action — without
-            expensive retrofits.
+          <p className="mt-6 max-w-[560px] text-[15px] leading-relaxed text-white/55">
+            Real-time energy operations for the shop floor. Voltix helps MSME
+            manufacturers monitor machine states, detect energy waste, predict
+            condition drift, and take safe action — all without expensive
+            retrofits.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -433,29 +537,30 @@ function Hero() {
               className="group flex items-center gap-2 rounded-full bg-gradient-to-r from-[#147df2] to-[#0870d9] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_10px_32px_rgba(22,136,255,0.22)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(22,136,255,0.38)]"
             >
               Enter ops console
-              <span className="transition-transform group-hover:translate-x-1">→</span>
+              <span className="transition-transform group-hover:translate-x-1">
+                →
+              </span>
             </Link>
             <a
               href="#how-it-works"
-              className="flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.025] px-7 py-3.5 text-sm text-white/75 transition-all hover:border-white/22 hover:bg-white/[0.05] hover:text-white"
+              className="flex items-center gap-2 rounded-full border border-white/20 bg-transparent px-7 py-3.5 text-sm text-white/80 transition-all hover:border-white/35 hover:bg-white/[0.04] hover:text-white"
             >
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1688ff]/16 text-[9px]">
-                ▶
-              </span>
               Watch demo
             </a>
           </div>
 
           <div className="mt-7 flex flex-wrap gap-5 text-[12px] text-white/45">
-            {["◈ No PLC changes", "◉ Retrofit-friendly", "◆ Built for MSMEs"].map((t) => (
-              <span key={t} className="flex items-center gap-1.5">
-                {t}
-              </span>
-            ))}
+            {["No PLC changes", "Retrofit-friendly", "Built for MSMEs"].map(
+              (t) => (
+                <span key={t} className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#1688ff]" />
+                  {t}
+                </span>
+              ),
+            )}
           </div>
         </div>
 
-        {/* Visual */}
         <div className="lp-fade-up" style={{ animationDelay: "120ms" }}>
           <HeroVisual />
         </div>
@@ -495,7 +600,10 @@ function ValueStrip() {
 
 function MachinesSection() {
   return (
-    <section id="machines" className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
+    <section
+      id="machines"
+      className="relative z-10 mx-auto max-w-7xl px-6 pb-28"
+    >
       {/* Header */}
       <div className="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
@@ -529,9 +637,13 @@ function MachinesSection() {
 
             {/* Content */}
             <div className="px-2 pb-2 pt-4">
-              <h3 className="text-[13px] font-semibold text-white">{m.label}</h3>
+              <h3 className="text-[13px] font-semibold text-white">
+                {m.label}
+              </h3>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-[20px] font-bold text-white">{m.cost}</span>
+                <span className="text-[20px] font-bold text-white">
+                  {m.cost}
+                </span>
                 <span className="text-[11px] text-white/35">{m.unit}</span>
               </div>
               <p className="mt-1 text-[10px] text-white/40">{m.insight}</p>
@@ -552,7 +664,10 @@ function MachinesSection() {
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
+    <section
+      id="how-it-works"
+      className="relative z-10 mx-auto max-w-7xl px-6 pb-28"
+    >
       <p className="mb-2 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
         HOW VOLTIX WORKS
       </p>
@@ -571,8 +686,12 @@ function HowItWorks() {
                 <p className="mt-4 font-mono text-[9px] tracking-[0.15em] text-[#258fe8]">
                   {step.num}
                 </p>
-                <h3 className="mt-1 text-[15px] font-semibold text-white">{step.title}</h3>
-                <p className="mt-1 text-[10px] leading-relaxed text-white/40">{step.desc}</p>
+                <h3 className="mt-1 text-[15px] font-semibold text-white">
+                  {step.title}
+                </h3>
+                <p className="mt-1 text-[10px] leading-relaxed text-white/40">
+                  {step.desc}
+                </p>
               </div>
 
               {/* Arrow between steps */}
@@ -593,8 +712,13 @@ function HowItWorks() {
 
 function Differentiation() {
   return (
-    <section id="product" className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
-      <p className="mb-2 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">WHY VOLTIX</p>
+    <section
+      id="product"
+      className="relative z-10 mx-auto max-w-7xl px-6 pb-28"
+    >
+      <p className="mb-2 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
+        WHY VOLTIX
+      </p>
       <h2 className="mb-10 text-[clamp(30px,4vw,50px)] font-bold leading-none tracking-tight text-white">
         Built for legacy shops.
         <br />
@@ -610,8 +734,12 @@ function Differentiation() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1688ff]/10 text-[#1688ff]">
               {card.icon}
             </span>
-            <h3 className="mt-6 text-[17px] font-semibold text-white">{card.title}</h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-white/50">{card.body}</p>
+            <h3 className="mt-6 text-[17px] font-semibold text-white">
+              {card.title}
+            </h3>
+            <p className="mt-2 text-[13px] leading-relaxed text-white/50">
+              {card.body}
+            </p>
           </article>
         ))}
       </div>
@@ -659,8 +787,12 @@ function ImpactSection() {
               className="rounded-[18px] border border-white/8 bg-white/[0.018] p-6"
             >
               <p className="text-[11px] font-bold text-[#29a7ff]">{c.tag}</p>
-              <h3 className="mt-7 text-[18px] font-semibold text-white">{c.title}</h3>
-              <p className="mt-2 text-[12px] leading-relaxed text-white/50">{c.body}</p>
+              <h3 className="mt-7 text-[18px] font-semibold text-white">
+                {c.title}
+              </h3>
+              <p className="mt-2 text-[12px] leading-relaxed text-white/50">
+                {c.body}
+              </p>
             </div>
           ))}
         </div>
@@ -683,11 +815,11 @@ function FinalCTA() {
             READY TO SEE THE DIFFERENCE?
           </p>
           <h2 className="text-[clamp(38px,5.5vw,64px)] font-bold leading-[0.96] tracking-[-0.055em] text-white">
-            Make every unit count.
+            Let's make every unit count.
           </h2>
           <p className="mt-5 max-w-[480px] text-[15px] leading-relaxed text-white/50">
             Give legacy machines the intelligence to operate more efficiently,
-            safely, and measurably.
+            safely, and measurably — toward a sustainable shop floor.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
@@ -695,7 +827,9 @@ function FinalCTA() {
               className="group flex items-center gap-2 rounded-full bg-gradient-to-r from-[#147df2] to-[#0870d9] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(22,136,255,0.22)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_38px_rgba(22,136,255,0.38)]"
             >
               Open console
-              <span className="transition-transform group-hover:translate-x-1">→</span>
+              <span className="transition-transform group-hover:translate-x-1">
+                →
+              </span>
             </Link>
             <button className="rounded-full border border-white/12 bg-white/[0.025] px-7 py-3.5 text-sm text-white/70 transition-all hover:border-white/22 hover:text-white">
               Talk to us
@@ -729,7 +863,9 @@ function Footer() {
           </span>
           <div>
             <p className="text-sm font-bold text-white">Voltix</p>
-            <p className="text-[10px] text-white/35">Energy ops for the shop floor</p>
+            <p className="text-[10px] text-white/35">
+              Energy ops for the shop floor
+            </p>
           </div>
         </div>
 
@@ -741,7 +877,11 @@ function Footer() {
             ["#how-it-works", "How it works"],
             ["#impact", "Impact"],
           ].map(([href, label]) => (
-            <a key={href} href={href} className="text-[13px] text-white/40 hover:text-white">
+            <a
+              key={href}
+              href={href}
+              className="text-[13px] text-white/40 hover:text-white"
+            >
               {label}
             </a>
           ))}
@@ -773,7 +913,7 @@ function useSectionFade() {
           obs.disconnect();
         }
       },
-      { threshold: 0.08 }
+      { threshold: 0.08 },
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -781,7 +921,13 @@ function useSectionFade() {
   return ref;
 }
 
-function FadeSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+function FadeSection({
+  children,
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+}) {
   const ref = useSectionFade();
   return (
     <div
@@ -803,7 +949,10 @@ export function LandingPage() {
   return (
     <div className="lp-root min-h-screen overflow-x-hidden text-white">
       {/* Background */}
-      <div className="lp-bg pointer-events-none fixed inset-0" aria-hidden="true" />
+      <div
+        className="lp-bg pointer-events-none fixed inset-0"
+        aria-hidden="true"
+      />
 
       <Navbar />
 
