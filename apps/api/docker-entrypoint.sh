@@ -27,4 +27,5 @@ asyncio.run(wait())
 PY
 
 python -m app.seed || true
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+PORT="${PORT:-8000}"
+exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"
