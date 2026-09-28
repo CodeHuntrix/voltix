@@ -4,6 +4,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { router } from "./router";
 import "./index.css";
+import "./components/buttons.css";
 
 const qc = new QueryClient();
 

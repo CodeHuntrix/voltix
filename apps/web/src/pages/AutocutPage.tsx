@@ -45,7 +45,7 @@ export function AutocutPage() {
             <button
               key={m.machine_id}
               type="button"
-              className="glass-card rounded-full px-4 py-2 text-sm text-white hover:border-primary"
+              className="vx-button vx-button--secondary"
               onClick={() => create.mutate(m.machine_id)}
             >
               {m.name} · {m.state}
@@ -69,14 +69,14 @@ export function AutocutPage() {
                 <>
                   <button
                     type="button"
-                    className="rounded-full bg-success px-3 py-1 text-sm text-white"
+                    className="vx-button vx-button--primary"
                     onClick={() => decide.mutate({ id: c.id, approve: true })}
                   >
                     Approve
                   </button>
                   <button
                     type="button"
-                    className="rounded-full bg-danger px-3 py-1 text-sm text-white"
+                    className="vx-button vx-button--tertiary"
                     onClick={() => decide.mutate({ id: c.id, approve: false })}
                   >
                     Deny

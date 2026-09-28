@@ -48,10 +48,10 @@ export function AlertsPage() {
             {!a.acknowledged && (
               <button
                 type="button"
-                className="text-sm font-medium text-sky-300 hover:text-white"
+                className="vx-button vx-button--tertiary"
                 onClick={() => ack.mutate(a.id)}
               >
-                Ack
+                Acknowledge
               </button>
             )}
           </li>

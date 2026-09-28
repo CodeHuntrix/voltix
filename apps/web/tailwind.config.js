@@ -5,8 +5,8 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#0C5CAB",
-          hover: "#0a4a8a",
+          DEFAULT: "#e6a17c",
+          hover: "#f0b18d",
         },
         success: "#10b981",
         warning: "#f59e0b",
@@ -32,7 +32,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"],
+        sans: ['"Manrope"', "system-ui", "sans-serif"],
         mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
       },
       boxShadow: {

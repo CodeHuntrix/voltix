@@ -1,4 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#0C5CAB"/>
-  <path d="M18.5 6L10 17.5h6.2L13.5 26 22 14.2h-6.1L18.5 6z" fill="#fff"/>
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="voltix-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#38bdf8" />
+      <stop offset="60%" stopColor="#06b6d4" />
+      <stop offset="100%" stopColor="#0891b2" />
+    </linearGradient>
+    <linearGradient id="voltix-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#3b82f6" />
+      <stop offset="50%" stopColor="#1d4ed8" />
+      <stop offset="100%" stopColor="#1e40af" />
+    </linearGradient>
+  </defs>
+  <path d="M14 18 L38 18 L54 68 L36 82 Z" fill="url(#voltix-cyan)" />
+  <path d="M86 18 L62 18 L46 64 L62 82 Z" fill="url(#voltix-blue)" />
+  <path d="M36 82 L54 68 L62 82 L49 88 Z" fill="#00f2fe" opacity="0.9" />
 </svg>

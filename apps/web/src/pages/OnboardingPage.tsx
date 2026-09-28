@@ -201,13 +201,13 @@ export function OnboardingPage() {
               setError(null);
               save.mutate();
             }}
-            className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-40"
+            className="vx-button vx-button--primary"
           >
             {save.isPending ? "Saving floor…" : "Open ops console"}
           </button>
           <Link
             to="/dashboard"
-            className="rounded-full border border-white/15 px-6 py-2.5 text-sm text-white/70 hover:bg-white/5"
+            className="vx-button vx-button--secondary"
           >
             Skip for now
           </Link>

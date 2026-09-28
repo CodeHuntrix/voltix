@@ -1,0 +1,87 @@
+.ops-app {
+  --ops-bg: #14181b;
+  --ops-panel: #20262a;
+  --ops-line: #3e484c;
+  --ops-muted: #bdc7c9;
+  min-height: 100svh;
+  background: var(--ops-bg);
+  color: #f4f2ee;
+  font-family: Manrope, Arial, sans-serif;
+}
+.ops-app * { box-sizing: border-box; }
+.ops-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: 225px;
+  padding: 28px 14px 20px;
+  border-right: 1px solid #374044;
+  background: #181d20;
+}
+.ops-sidebar-brand { padding: 0 8px 38px; }
+.ops-sidebar-brand .text-\[1\.75rem\] { font-size: 22px; }
+.ops-sidebar-brand .text-sm { font-size: 10px; }
+.ops-sidebar-label, .ops-topbar-kicker {
+  color: #d29a7b;
+  font: 10px 'IBM Plex Mono', monospace;
+  letter-spacing: .11em;
+}
+.ops-sidebar-label { padding: 0 18px 12px; }
+.ops-nav { display: grid; gap: 4px; }
+.ops-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 43px;
+  padding: 0 15px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #c5ced0;
+  font: 650 13px Manrope, Arial, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.ops-nav-link:hover { background: #2b3337; color: white; }
+.ops-nav-link.is-active { background: #38332f; border-color: #704d3d; color: #f7e5da; }
+.ops-nav-link.is-active .ops-nav-icon { color: #e6a17c; }
+.ops-nav-icon { width: 18px; height: 18px; flex: none; }
+.ops-signout { margin-top: auto; width: 100%; text-align: left; }
+.ops-main { min-width: 0; max-width: 1800px; margin-left: 225px; padding: 0 clamp(24px, 3vw, 54px); }
+.ops-topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 96px; margin-bottom: 30px; border-bottom: 1px solid #374044; }
+.ops-topbar p { margin: 6px 0 0; color: #c7d0d1; font-size: 13px; }
+.ops-context-chip { padding: 9px 13px; border: 1px solid #485155; border-radius: 8px; background: #242b2e; color: #d2dbdc; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.ops-content { padding-bottom: 60px; }
+.ops-app .glass-card, .ops-app .glass-rail, .ops-app .glass-pill { background: var(--ops-panel); border: 1px solid var(--ops-line); box-shadow: none; backdrop-filter: none; }
+.ops-app .glass-card { border-radius: 12px; }
+.ops-app .machine-card { background: var(--ops-panel); border-color: var(--ops-line); box-shadow: none; }
+.ops-app .text-white\/45, .ops-app .text-white\/40, .ops-app .text-white\/35, .ops-app .text-white\/50 { color: var(--ops-muted); }
+.ops-app .text-sky-300, .ops-app .text-cyan-300 { color: #efb08d; }
+.ops-app h1, .ops-app h2, .ops-app h3 { letter-spacing: -.035em; }
+.ops-app button:focus-visible, .ops-app a:focus-visible { outline: 2px solid #e6a17c; outline-offset: 3px; }
+@media (max-width: 820px) {
+  .ops-sidebar { position: relative; inset: auto; width: 100%; padding: 13px 16px 10px; border-right: 0; border-bottom: 1px solid #374044; }
+  .ops-sidebar-brand { padding: 0 0 12px; }
+  .ops-sidebar-brand .h-11 { width: 34px; height: 34px; }
+  .ops-sidebar-brand .text-\[1\.75rem\] { font-size: 18px; }
+  .ops-sidebar-brand .text-sm, .ops-sidebar-label { display: none; }
+  .ops-nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .ops-nav::-webkit-scrollbar { display: none; }
+  .ops-nav-link { flex: none; min-height: 37px; padding: 0 10px; gap: 7px; font-size: 11px; }
+  .ops-nav-icon { width: 15px; height: 15px; }
+  .ops-signout { display: none; }
+  .ops-main { margin-left: 0; padding: 0 18px; }
+  .ops-topbar { min-height: 70px; margin-bottom: 25px; }
+}
+@media (max-width: 510px) {
+  .ops-nav-icon { display: none; }
+  .ops-nav-link { padding-inline: 9px; font-size: 10px; }
+  .ops-signout { display: flex; position: absolute; top: 12px; right: 16px; width: auto; min-height: 34px; padding-inline: 9px; }
+  .ops-signout .ops-nav-icon { display: block; }
+  .ops-topbar p { font-size: 11px; }
+  .ops-context-chip { font-size: 9px; padding: 7px 8px; }
+  .ops-content .grid { min-width: 0; }
+}

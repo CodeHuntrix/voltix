@@ -60,7 +60,7 @@ export function MvPage() {
         <div className="flex gap-2">
           <button
             type="button"
-            className="rounded-full bg-primary px-4 py-2 text-sm text-white hover:bg-primary-hover disabled:opacity-50"
+            className="vx-button vx-button--primary"
             disabled={createReport.isPending}
             onClick={() => createReport.mutate()}
           >
@@ -68,7 +68,7 @@ export function MvPage() {
           </button>
           <button
             type="button"
-            className="glass-card rounded-full px-4 py-2 text-sm text-white"
+            className="vx-button vx-button--secondary"
             onClick={() => exportCsv.mutate()}
           >
             Export CSV

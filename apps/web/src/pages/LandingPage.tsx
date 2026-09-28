@@ -1,992 +1,115 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { MachineArt } from "@/components/MachineArt";
+import { useState } from "react";
+import "./landing.css";
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+const Mark = () => (
+  <span className="vx-mark" aria-hidden="true">
+    <svg viewBox="0 0 40 40" fill="none"><path d="M5 7h9l6 19L28 7h8L21 34h-6L5 7Z" fill="currentColor"/><path d="M28 7h8L21 34h-6l13-27Z" fill="#4cc7ff"/></svg>
+  </span>
+);
 
-const MACHINES = [
-  {
-    type: "compressor",
-    label: "Air compressor",
-    cost: "₹18",
-    unit: "/hr",
-    insight: "Load / unload waste",
-  },
-  {
-    type: "cnc",
-    label: "CNC / lathe",
-    cost: "₹24",
-    unit: "/hr",
-    insight: "Alert-only mid-cycle",
-  },
-  {
-    type: "press",
-    label: "Hydraulic press",
-    cost: "₹21",
-    unit: "/hr",
-    insight: "Cycle + idle energy",
-  },
-  {
-    type: "conveyor",
-    label: "Conveyor",
-    cost: "₹9",
-    unit: "/hr",
-    insight: "Utility AutoCut path",
-  },
-] as const;
+const Logo = () => <span className="vx-logo"><Mark /><span>VOLTIX<span className="vx-logo-dot">.</span></span></span>;
 
-const STEPS = [
-  {
-    num: "01",
-    title: "Sense",
-    desc: "Clip-on CT per load",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="h-5 w-5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-      >
-        <circle cx="12" cy="12" r="3" />
-        <path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4" />
-        <path d="M3.5 3.5a14 14 0 0 0 0 17M20.5 3.5a14 14 0 0 1 0 17" />
-      </svg>
-    ),
-  },
-  {
-    num: "02",
-    title: "Verify",
-    desc: "OFF / ACTIVE / IDLE / WASTE",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="h-5 w-5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-      >
-        <circle cx="11" cy="11" r="7" />
-        <path d="m21 21-4.35-4.35" />
-        <path d="M8 11h6M11 8v6" />
-      </svg>
-    ),
-  },
-  {
-    num: "03",
-    title: "Decide",
-    desc: "Rank in rupees",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="h-5 w-5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-      >
-        <path d="M3 3v18h18" />
-        <path d="m7 16 4-4 4 4 4-6" />
-      </svg>
-    ),
-  },
-  {
-    num: "04",
-    title: "Act",
-    desc: "Safe AutoCut or alert",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="h-5 w-5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-      >
-        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" />
-      </svg>
-    ),
-  },
-  {
-    num: "05",
-    title: "Prove",
-    desc: "M&V export",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="h-5 w-5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-      >
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
-        <path d="M14 2v6h6M8 13h8M8 17h5" />
-      </svg>
-    ),
-  },
-] as const;
+const navItems = [
+  { href: "#problem", label: "The problem" },
+  { href: "#approach", label: "How it works" },
+  { href: "#prototype", label: "Prototype" },
+];
 
-const VALUE_ITEMS = [
-  { value: "20–40%", label: "Energy waste reduction" },
-  { value: "₹ Lakhs", label: "Annual savings per shop" },
-  { value: "Plug & Play", label: "Retrofit in hours" },
-  { value: "Safer Ops", label: "With AI-driven alerts" },
-] as const;
-
-const DIFF_CARDS = [
-  {
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="h-5 w-5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-      >
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <path d="M8 21h8M12 17v4" />
-      </svg>
-    ),
-    title: "Legacy-ready",
-    body: "Retrofit intelligence onto existing machines without replacing the shop floor. Clip-on sensing, no PLC changes.",
-  },
-  {
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="h-5 w-5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-      >
-        <circle cx="12" cy="12" r="10" />
-        <circle cx="12" cy="12" r="4" />
-        <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-      </svg>
-    ),
-    title: "Machine-level intelligence",
-    body: "Understand machine state, energy behaviour, cost of waste, and electrical drift — per machine.",
-  },
-  {
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="h-5 w-5"
-        stroke="currentColor"
-        strokeWidth={1.6}
-      >
-        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" />
-      </svg>
-    ),
-    title: "Safe action",
-    body: "Eligible utility loads can receive AutoCut commands. Critical machines remain alert-only — safety by design.",
-  },
-] as const;
-
-// ─── Animated mini chart ──────────────────────────────────────────────────────
-
-function MiniChart() {
-  const [offset, setOffset] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setOffset((o) => (o + 1) % 40), 80);
-    return () => clearInterval(id);
-  }, []);
-
-  const pts = [
-    [0, 48],
-    [25, 43],
-    [48, 50],
-    [70, 31],
-    [95, 38],
-    [120, 27],
-    [143, 34],
-    [165, 22],
-    [190, 35],
-    [215, 26],
-    [240, 30],
-  ]
-    .map(([x, y]) => `${x},${y}`)
-    .join(" ");
-
-  return (
-    <svg viewBox="0 0 240 70" className="h-full w-full">
-      <defs>
-        <linearGradient id="chartLine" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#1688ff" />
-          <stop offset="100%" stopColor="#20d7c7" />
-        </linearGradient>
-      </defs>
-      <polyline
-        points={pts}
-        fill="none"
-        stroke="url(#chartLine)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ transform: `translateX(-${offset * 0.5}px)` }}
-      />
-    </svg>
-  );
-}
-
-// ─── Logo / SVG ───────────────────────────────────────────────────────────────
-
-function VoltixLogo({ className = "h-9 w-9" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <defs>
-        <linearGradient id="vg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1688FF" />
-          <stop offset="100%" stopColor="#20D7C7" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M10 8 L26 8 L36 30 L46 8 L56 8 L38 48 L30 48 Z"
-        fill="url(#vg)"
-      />
-      <path
-        d="M33 18 L25 35 H32 L28 50 L43 30 H36 Z"
-        fill="white"
-        opacity="0.92"
-      />
-    </svg>
-  );
-}
-
-// ─── Navbar ───────────────────────────────────────────────────────────────────
-
-function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  return (
-    <header
-      className={`sticky top-4 z-50 mx-auto max-w-7xl px-4 transition-all duration-300`}
-    >
-      <nav
-        className={`flex items-center gap-6 rounded-2xl border px-5 py-3 transition-all duration-300 ${
-          scrolled
-            ? "border-white/15 bg-[#02070d]/90 shadow-2xl backdrop-blur-2xl"
-            : "border-white/10 bg-[#04101a]/70 backdrop-blur-xl"
-        }`}
-      >
-        {/* Brand */}
-        <Link
-          to="/"
-          className="flex shrink-0 items-center gap-3 hover:opacity-90"
-        >
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1688ff]/30 bg-gradient-to-br from-[#1688ff]/20 to-[#20d7c7]/10">
-            <VoltixLogo className="h-7 w-7" />
-          </span>
-          <span>
-            <span className="block text-lg font-bold tracking-tight text-white">
-              Voltix
-            </span>
-            <span className="block text-[10px] text-white/40">
-              Energy ops for the shop floor
-            </span>
-          </span>
-        </Link>
-
-        {/* Desktop links */}
-        <div className="ml-auto hidden items-center gap-7 lg:flex">
-          {[
-            ["#home", "Home"],
-            ["#product", "Product"],
-            ["#machines", "Machines"],
-            ["#how-it-works", "How it works"],
-            ["#impact", "Impact"],
-            ["#about", "About"],
-          ].map(([href, label]) => (
-            <a
-              key={href}
-              href={href}
-              className={`text-sm transition-colors hover:text-white ${
-                href === "#home"
-                  ? "text-white underline decoration-[#1688ff] decoration-2 underline-offset-8"
-                  : "text-white/50"
-              }`}
-            >
-              {label}
-            </a>
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="ml-6 hidden items-center gap-3 lg:flex">
-          <Link
-            to="/login"
-            className="rounded-full border border-white/12 px-4 py-2 text-sm text-white/70 transition-all hover:border-white/25 hover:bg-white/5 hover:text-white"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/dashboard"
-            className="group flex items-center gap-2 rounded-full bg-gradient-to-r from-[#147df2] to-[#0870d9] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(22,136,255,0.25)] transition-all hover:shadow-[0_10px_30px_rgba(22,136,255,0.4)] hover:-translate-y-0.5"
-          >
-            Open console
-            <span className="transition-transform group-hover:translate-x-1">
-              →
-            </span>
-          </Link>
-        </div>
-
-        {/* Mobile menu button */}
-        <button
-          className="ml-auto flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-white/60 lg:hidden"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
-        >
-          {menuOpen ? (
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              className="h-5 w-5"
-            >
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              className="h-5 w-5"
-            >
-              <path d="M3 12h18M3 6h18M3 18h18" />
-            </svg>
-          )}
-        </button>
+function Header() {
+  const [open, setOpen] = useState(false);
+  return <header className="vx-header">
+    <div className="vx-container vx-header-inner">
+      <a href="#top" className="vx-logo-link" aria-label="VOLTIX home"><Logo /></a>
+      <nav className={`vx-nav ${open ? "is-open" : ""}`} aria-label="Main navigation">
+        {navItems.map(item => <a key={item.href} href={item.href} onClick={() => setOpen(false)}>{item.label}</a>)}
+        <a href="/login" className="vx-nav-mobile-signin" onClick={() => setOpen(false)}>Sign in</a>
+        <a href="#dashboard-preview" className="vx-button vx-button--primary vx-nav-mobile-cta" onClick={() => setOpen(false)}>View preview</a>
       </nav>
-
-      {/* Mobile dropdown */}
-      {menuOpen && (
-        <div className="mt-2 rounded-2xl border border-white/10 bg-[#050d16]/95 px-5 py-4 backdrop-blur-2xl lg:hidden">
-          <div className="flex flex-col gap-4">
-            {[
-              ["#home", "Home"],
-              ["#product", "Product"],
-              ["#machines", "Machines"],
-              ["#how-it-works", "How it works"],
-              ["#impact", "Impact"],
-              ["#about", "About"],
-            ].map(([href, label]) => (
-              <a
-                key={href}
-                href={href}
-                onClick={() => setMenuOpen(false)}
-                className="text-sm text-white/60 hover:text-white"
-              >
-                {label}
-              </a>
-            ))}
-            <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-4">
-              <Link
-                to="/login"
-                className="rounded-xl border border-white/12 py-2.5 text-center text-sm text-white/70"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/dashboard"
-                className="rounded-xl bg-gradient-to-r from-[#147df2] to-[#0870d9] py-2.5 text-center text-sm font-semibold text-white"
-              >
-                Open console →
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-}
-
-// ─── Hero telemetry overlay ───────────────────────────────────────────────────
-
-function LiveDot() {
-  return (
-    <span className="relative flex h-2 w-2">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-    </span>
-  );
-}
-
-function HeroVisual() {
-  return (
-    <div className="relative min-h-[420px] overflow-hidden rounded-[22px] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.45)] md:min-h-[560px]">
-      <img
-        src="/landing/hero-floor.png"
-        alt="CNC floor with live Voltix telemetry overlays"
-        className="absolute inset-0 h-full w-full object-cover object-center"
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#02070d]/55 via-transparent to-[#02070d]/25" />
-
-      <div className="lp-telemetry-card absolute left-[4%] top-[10%] z-20 w-[min(230px,46%)]">
-        <div className="flex items-center justify-between">
-          <span className="text-[13px] font-semibold text-white">CNC-01</span>
-          <span className="flex items-center gap-1.5 text-[10px] font-medium text-emerald-400">
-            <LiveDot />
-            ACTIVE
-          </span>
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {[
-            ["Power", "4.2 kW"],
-            ["Today's cost", "₹182"],
-            ["Status", "Healthy"],
-          ].map(([k, v]) => (
-            <div key={k}>
-              <p className="text-[9px] text-white/40">{k}</p>
-              <p className="mt-1 text-[11px] font-semibold text-white">{v}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="lp-telemetry-card absolute right-[3%] top-[6%] z-20 hidden w-[210px] sm:block">
-        <div className="flex items-center justify-between text-[10px] text-white/50">
-          <span>Live power (kW)</span>
-          <span className="font-semibold text-white">4.2 kW</span>
-        </div>
-        <div className="mt-2 h-[58px]">
-          <MiniChart />
-        </div>
-      </div>
-
-      <div className="absolute bottom-[10%] right-[3%] z-20 hidden w-[160px] flex-col gap-2 md:flex">
-        {[
-          { icon: "✦", label: "Pulse", sub: "Machine state" },
-          { icon: "◌", label: "Condition", sub: "Drift detection" },
-          { icon: "↗", label: "Waste", sub: "₹ loss in real time" },
-          { icon: "ϟ", label: "Action", sub: "AutoCut (safe)" },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="flex items-center gap-2.5 rounded-xl border border-white/8 bg-[#040c14]/88 px-3 py-2.5 backdrop-blur-xl"
-          >
-            <span className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-lg bg-[#1688ff]/12 text-[14px] text-[#29a7ff]">
-              {item.icon}
-            </span>
-            <div>
-              <p className="text-[11px] font-semibold text-white">
-                {item.label}
-              </p>
-              <p className="text-[9px] text-white/40">{item.sub}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <p className="lp-handwrite absolute bottom-4 left-5 z-20 text-[15px] text-white/80 md:bottom-6 md:left-8 md:text-[17px]">
-        Smarter machines, Brighter industries.
-      </p>
+      <div className="vx-header-actions"><a href="/login" className="vx-button vx-button--tertiary vx-header-signin">Sign in</a><a href="#dashboard-preview" className="vx-button vx-button--primary vx-header-cta">View preview</a></div>
+      <button className="vx-menu" type="button" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} onClick={() => setOpen(!open)}><span /><span /></button>
     </div>
-  );
+  </header>;
 }
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
+function SignalChart() {
+  return <svg className="vx-chart" viewBox="0 0 560 230" role="img" aria-label="Illustrative electrical load chart showing a prolonged unloaded operating period">
+    <defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#e19470" stopOpacity=".2"/><stop offset="1" stopColor="#e19470" stopOpacity="0"/></linearGradient></defs>
+    {[34,84,134,184].map(y => <line key={y} x1="0" y1={y} x2="560" y2={y} stroke="#2a3544" strokeDasharray="3 6" />)}
+    <rect x="308" y="0" width="180" height="184" fill="#d5a06b" opacity=".1" />
+    <path d="M0 159 L22 155 L37 160 L54 55 L76 52 L97 57 L119 49 L140 55 L160 57 L179 52 L197 56 L218 50 L237 55 L257 58 L277 61 L296 105 L315 115 L335 112 L355 118 L375 112 L395 116 L416 111 L435 115 L456 113 L478 109 L495 55 L516 52 L538 58 L560 53 L560 184 L0 184Z" fill="url(#chart-fill)" />
+    <path d="M0 159 L22 155 L37 160 L54 55 L76 52 L97 57 L119 49 L140 55 L160 57 L179 52 L197 56 L218 50 L237 55 L257 58 L277 61 L296 105 L315 115 L335 112 L355 118 L375 112 L395 116 L416 111 L435 115 L456 113 L478 109 L495 55 L516 52 L538 58 L560 53" fill="none" stroke="#e9b397" strokeWidth="3" strokeLinejoin="round" />
+    <line x1="309" x2="309" y1="0" y2="185" stroke="#d4a06e" strokeDasharray="5 5" />
+    <line x1="488" x2="488" y1="0" y2="185" stroke="#d4a06e" strokeDasharray="5 5" />
+    <text x="0" y="220">09:00</text><text x="170" y="220">09:30</text><text x="342" y="220">10:00</text><text x="505" y="220">10:30</text>
+  </svg>;
+}
+
+function ProductPreview() {
+  return <div className="vx-dashboard" aria-label="Illustrative VOLTIX dashboard with sample data">
+    <aside className="vx-dash-sidebar">
+      <div className="vx-dash-brand"><Logo /></div>
+      <div className="vx-dash-nav"><span className="active">▦ <b>Overview</b></span><span>◫ <b>Machines</b></span><span>◉ <b>Opportunities</b></span><span>▥ <b>Reports</b></span></div>
+      <div className="vx-dash-side-foot">SIH 2026<br />Idea Engineers</div>
+    </aside>
+    <div className="vx-dash-main">
+      <div className="vx-dash-top"><div><span className="vx-dash-overline">SHOP FLOOR / OVERVIEW</span><h3>Energy overview</h3><p>Machine signals, operating states, and opportunities in one place.</p></div><span className="vx-dash-sample">SAMPLE DATA</span></div>
+      <div className="vx-dash-metrics">
+        <div><span>Machines observed</span><strong>04</strong><small>Demo workspace</small></div>
+        <div><span>Needs review</span><strong className="vx-orange">01</strong><small>Potential unloaded run</small></div>
+        <div><span>Estimated event cost</span><strong>₹24.60</strong><small>Illustrative only</small></div>
+        <div><span>Last reading</span><strong>10:32</strong><small>Sample timeline</small></div>
+      </div>
+      <div className="vx-dash-content">
+        <section className="vx-dash-chart-panel"><div className="vx-dash-panel-head"><div><span className="vx-dash-overline">COMPRESSOR 01</span><h4>Electrical load pattern</h4></div><span className="vx-dash-state"><i /> Unloaded interval</span></div><SignalChart /><div className="vx-dash-chart-footer"><span><i /> Current signature</span><span>Operator review suggested</span></div></section>
+        <aside className="vx-dash-insight"><span className="vx-dash-overline">PRIORITY 01 / 01</span><div className="vx-dash-insight-icon">!</div><h4>Check compressor demand</h4><p>Extended unloaded operation may be avoidable. Confirm site conditions before recording an action.</p><div><span>Duration</span><strong>18 min</strong></div><div><span>Estimated impact</span><strong>₹24.60</strong></div><span className="vx-dash-review">REVIEW SUGGESTED</span></aside>
+      </div>
+      <div className="vx-dash-bottom"><span><i /> COMPRESSOR 01</span><span>ACTIVE / UNLOADED</span><span>10:13 – 10:31</span><span>EVENT LOGGED</span></div>
+    </div>
+  </div>;
+}
 
 function Hero() {
-  return (
-    <section
-      id="home"
-      className="relative z-10 overflow-hidden pb-12 pt-10 md:pt-16"
-    >
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <img
-          src="/landing/hero-floor.png"
-          alt=""
-          aria-hidden="true"
-          className="h-full w-full object-cover object-[70%_center] opacity-35"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#02070d] via-[#02070d]/92 to-[#02070d]/55" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#02070d]/40 via-transparent to-[#02070d]" />
-      </div>
-
-      <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 lg:grid-cols-2">
-        <div className="lp-fade-up">
-          <span className="inline-flex items-center rounded-md border border-[#1688ff]/35 bg-[#1688ff]/8 px-3 py-1.5 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
-            SMART AUTOMATION FOR MSMEs
-          </span>
-
-          <h1 className="mt-6 text-[clamp(48px,6.5vw,80px)] font-bold leading-[0.94] tracking-[-0.055em] text-white">
-            See the machine.{" "}
-            <span className="bg-gradient-to-r from-[#29a7ff] to-[#20d7c7] bg-clip-text text-transparent">
-              Stop the waste.
-            </span>
-          </h1>
-
-          <p className="mt-6 max-w-[560px] text-[15px] leading-relaxed text-white/55">
-            Real-time energy operations for the shop floor. Voltix helps MSME
-            manufacturers monitor machine states, detect energy waste, predict
-            condition drift, and take safe action — all without expensive
-            retrofits.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/dashboard"
-              className="group flex items-center gap-2 rounded-full bg-gradient-to-r from-[#147df2] to-[#0870d9] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_10px_32px_rgba(22,136,255,0.22)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(22,136,255,0.38)]"
-            >
-              Enter ops console
-              <span className="transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-            <a
-              href="#how-it-works"
-              className="flex items-center gap-2 rounded-full border border-white/20 bg-transparent px-7 py-3.5 text-sm text-white/80 transition-all hover:border-white/35 hover:bg-white/[0.04] hover:text-white"
-            >
-              Watch demo
-            </a>
-          </div>
-
-          <div className="mt-7 flex flex-wrap gap-5 text-[12px] text-white/45">
-            {["No PLC changes", "Retrofit-friendly", "Built for MSMEs"].map(
-              (t) => (
-                <span key={t} className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#1688ff]" />
-                  {t}
-                </span>
-              ),
-            )}
-          </div>
-        </div>
-
-        <div className="lp-fade-up" style={{ animationDelay: "120ms" }}>
-          <HeroVisual />
-        </div>
-      </div>
-    </section>
-  );
+  return <section className="vx-hero" id="top">
+    <div className="vx-hero-bg" aria-hidden="true" />
+    <div className="vx-container vx-hero-inner"><div className="vx-hero-copy">
+      <div className="vx-eyebrow"><span className="vx-eyebrow-line" /> ENERGY INTELLIGENCE FOR LEGACY INDUSTRY</div>
+      <h1>Know what your machines are doing.<br /><em>See where energy goes.</em></h1>
+      <p className="vx-hero-sub">Machine-level energy visibility for legacy factories, starting with unloaded air compressors.</p>
+      <div className="vx-hero-actions"><a href="#dashboard-preview" className="vx-button vx-button--primary">View dashboard preview</a><a href="#approach" className="vx-button vx-button--secondary">See how it works</a></div>
+      <p className="vx-demo-note">PROTOTYPE STAGE · DASHBOARD PREVIEW USES SAMPLE DATA</p>
+    </div></div>
+  </section>;
 }
 
-// ─── Value strip ─────────────────────────────────────────────────────────────
-
-function ValueStrip() {
-  return (
-    <section className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
-      <div className="grid grid-cols-2 divide-x divide-white/8 overflow-hidden rounded-2xl border border-[#46a0e6]/18 bg-[#07111b]/72 backdrop-blur-xl lg:grid-cols-4">
-        {VALUE_ITEMS.map(({ value, label }, i) => (
-          <div
-            key={value}
-            className={`flex items-center gap-4 px-7 py-6 ${
-              i !== VALUE_ITEMS.length - 1 ? "" : ""
-            }`}
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1688ff]/12 text-[18px] text-[#1688ff]">
-              ϟ
-            </span>
-            <div>
-              <p className="text-xl font-bold text-white">{value}</p>
-              <p className="mt-0.5 text-[11px] text-white/40">{label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+function DashboardShowcase() {
+  return <section className="vx-showcase" id="dashboard-preview" aria-label="Dashboard preview"><div className="vx-container"><div className="vx-hero-visual"><ProductPreview /><div className="vx-hero-caption"><span>VOLTIX / OPERATIONS CONSOLE</span><span>ILLUSTRATIVE PRODUCT VIEW</span></div></div></div></section>;
 }
 
-// ─── Machines section ────────────────────────────────────────────────────────
-
-function MachinesSection() {
-  return (
-    <section
-      id="machines"
-      className="relative z-10 mx-auto max-w-7xl px-6 pb-28"
-    >
-      {/* Header */}
-      <div className="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="mb-2 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
-            COMMON MACHINES
-          </p>
-          <h2 className="text-[clamp(30px,4vw,50px)] font-bold leading-none tracking-tight text-white">
-            Built for the real shop floor.
-          </h2>
-        </div>
-        <p className="max-w-[280px] text-right text-[13px] text-white/35 sm:max-w-[240px]">
-          Different machines. Same waste. One solution.
-        </p>
-      </div>
-
-      {/* Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {MACHINES.map((m) => (
-          <article
-            key={m.type}
-            className="group relative overflow-hidden rounded-[18px] border border-white/8 bg-[#090f19]/82 p-3 transition-all duration-300 hover:-translate-y-1.5 hover:border-[#1688ff]/35 hover:bg-[#0e1924]/95 hover:shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
-          >
-            {/* Image well */}
-            <div className="machine-well relative flex h-[190px] items-center justify-center overflow-hidden rounded-[12px] bg-[#05090e]">
-              <MachineArt
-                machineType={m.type}
-                alt={m.label}
-                className="machine-art h-[90%] w-auto max-w-[90%] object-contain transition-transform duration-300 group-hover:scale-[1.06]"
-              />
-            </div>
-
-            {/* Content */}
-            <div className="px-2 pb-2 pt-4">
-              <h3 className="text-[13px] font-semibold text-white">
-                {m.label}
-              </h3>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-[20px] font-bold text-white">
-                  {m.cost}
-                </span>
-                <span className="text-[11px] text-white/35">{m.unit}</span>
-              </div>
-              <p className="mt-1 text-[10px] text-white/40">{m.insight}</p>
-            </div>
-
-            {/* Arrow button */}
-            <button className="absolute bottom-4 right-4 flex h-[30px] w-[30px] items-center justify-center rounded-full border border-white/10 bg-[#1688ff]/10 text-[13px] text-white/60 transition-all hover:border-[#1688ff]/40 hover:text-white">
-              →
-            </button>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
+function Problem() {
+  return <section className="vx-section vx-problem" id="problem"><div className="vx-container vx-problem-grid"><div className="vx-section-heading"><span className="vx-kicker">01 / THE PROBLEM</span><h2>The bill tells you <em>how much.</em><br />It doesn’t tell you <em>why.</em></h2></div><div className="vx-problem-copy"><p>In a legacy workshop, one electricity total can hide hours of unnecessary machine operation. A compressor may continue drawing power while unloaded, even when nobody needs compressed air.</p><p>Finding that pattern takes more than a meter reading. Teams need a machine-level timeline, an explainable alert, and a way to record what happened after they acted.</p><div className="vx-problem-callout"><span>INITIAL FOCUS</span><strong>Prolonged unloaded operation on air compressors</strong></div></div></div></section>;
 }
 
-// ─── How it works ────────────────────────────────────────────────────────────
+const steps = [
+  { no: "01", title: "Sense", text: "A clamp-on current sensor observes the electrical signature of a selected machine." },
+  { no: "02", title: "Understand", text: "Machine-specific patterns help separate active, unloaded and unavailable readings." },
+  { no: "03", title: "Prioritize", text: "Potential waste appears as a time-stamped event with an estimated cost for review." },
+  { no: "04", title: "Verify", text: "Operators record the action. Before-and-after readings help evaluate the outcome." },
+];
 
-function HowItWorks() {
-  return (
-    <section
-      id="how-it-works"
-      className="relative z-10 mx-auto max-w-7xl px-6 pb-28"
-    >
-      <p className="mb-2 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
-        HOW VOLTIX WORKS
-      </p>
-      <h2 className="mb-10 text-[clamp(30px,4vw,50px)] font-bold leading-none tracking-tight text-white">
-        From data to decisions — in real time.
-      </h2>
-
-      <div className="overflow-hidden rounded-3xl border border-white/8 bg-[#07111b]/75 p-5">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
-          {STEPS.map((step, idx) => (
-            <div key={step.num} className="relative">
-              <div className="min-h-[175px] rounded-2xl border border-white/8 bg-white/[0.018] p-5 transition-all hover:border-[#1688ff]/30 hover:bg-white/[0.03]">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1688ff]/10 text-[#29a7ff]">
-                  {step.icon}
-                </span>
-                <p className="mt-4 font-mono text-[9px] tracking-[0.15em] text-[#258fe8]">
-                  {step.num}
-                </p>
-                <h3 className="mt-1 text-[15px] font-semibold text-white">
-                  {step.title}
-                </h3>
-                <p className="mt-1 text-[10px] leading-relaxed text-white/40">
-                  {step.desc}
-                </p>
-              </div>
-
-              {/* Arrow between steps */}
-              {idx < STEPS.length - 1 && (
-                <div className="absolute -right-1.5 top-1/2 z-10 hidden -translate-y-1/2 text-[22px] text-[#1688ff]/60 sm:block">
-                  →
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+function Approach() {
+  return <section className="vx-section vx-approach" id="approach"><div className="vx-container"><div className="vx-approach-head"><div><span className="vx-kicker">02 / THE APPROACH</span><h2>From a power signal<br />to a practical decision.</h2></div><p>Designed as a retrofit workflow for machines that were never built to report their own operating data.</p></div><div className="vx-steps">{steps.map((step) => <div className="vx-step" key={step.no}><div className="vx-step-top"><span>{step.no}</span></div><h3>{step.title}</h3><p>{step.text}</p></div>)}</div><div className="vx-approach-foot"><span>ALERT FIRST</span><p>Any future control integration requires machine-specific approval and safety validation.</p></div></div></section>;
 }
 
-// ─── Differentiation ─────────────────────────────────────────────────────────
-
-function Differentiation() {
-  return (
-    <section
-      id="product"
-      className="relative z-10 mx-auto max-w-7xl px-6 pb-28"
-    >
-      <p className="mb-2 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
-        WHY VOLTIX
-      </p>
-      <h2 className="mb-10 text-[clamp(30px,4vw,50px)] font-bold leading-none tracking-tight text-white">
-        Built for legacy shops.
-        <br />
-        <span className="text-white/45">Not just new factories.</span>
-      </h2>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {DIFF_CARDS.map((card) => (
-          <article
-            key={card.title}
-            className="rounded-[20px] border border-white/8 bg-[#090f19]/75 p-7 transition-all duration-200 hover:border-[#1688ff]/25 hover:bg-[#0d1a27]/90"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1688ff]/10 text-[#1688ff]">
-              {card.icon}
-            </span>
-            <h3 className="mt-6 text-[17px] font-semibold text-white">
-              {card.title}
-            </h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-white/50">
-              {card.body}
-            </p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
+function Prototype() {
+  return <section className="vx-section vx-prototype" id="prototype"><div className="vx-container vx-prototype-grid"><div><span className="vx-kicker">03 / WHERE WE ARE</span><h2>A working direction.<br /><em>An honest starting point.</em></h2><p>We’ve built a sensing-to-software prototype using a laptop charger as the first machine proxy. The next meaningful proof is a documented compressor session with reference measurements and operator-confirmed events.</p><a href="#dashboard-preview" className="vx-button vx-button--tertiary vx-prototype-link">View dashboard preview</a></div><div className="vx-status-card"><div className="vx-status-head"><span>VALIDATION STATUS</span><span>SEPTEMBER 2026</span></div><div className="vx-status-row"><span className="vx-status-symbol done">✓</span><div><strong>Bench sensing loop</strong><small>Physical current input through the software workflow</small></div><span className="vx-status-tag">PROTOTYPE</span></div><div className="vx-status-row"><span className="vx-status-symbol next">·</span><div><strong>Compressor use case</strong><small>Machine sessions and independent operating labels</small></div><span className="vx-status-tag future">NEXT</span></div><div className="vx-status-row"><span className="vx-status-symbol next">·</span><div><strong>Savings verification</strong><small>Reference energy readings and comparable conditions</small></div><span className="vx-status-tag future">NEXT</span></div><p className="vx-status-foot">Interface examples are illustrative; no percentage savings claim is presented as measured field impact.</p></div></div></section>;
 }
 
-// ─── Impact section ───────────────────────────────────────────────────────────
-
-function ImpactSection() {
-  return (
-    <section id="impact" className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
-      <div className="overflow-hidden rounded-[30px] border border-white/8 bg-[radial-gradient(circle_at_85%_20%,rgba(22,136,255,0.09),transparent_35%),rgba(7,16,25,0.82)] p-10 md:p-16">
-        <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
-          THE VOLTIX DIFFERENCE
-        </p>
-        <h2 className="text-[clamp(28px,4vw,48px)] font-bold leading-tight tracking-tight text-white">
-          Energy becomes visible.
-          <br />
-          Waste becomes measurable.
-          <br />
-          Action becomes safer.
-        </h2>
-
-        <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {[
-            {
-              tag: "₹ / hour",
-              title: "Understand the cost",
-              body: "Translate avoidable machine consumption into money your team can act on.",
-            },
-            {
-              tag: "Machine state",
-              title: "Know what's happening",
-              body: "Distinguish OFF, IDLE, ACTIVE and WASTE behaviour from real telemetry.",
-            },
-            {
-              tag: "Drift score",
-              title: "Spot abnormal behaviour early",
-              body: "Compare active electrical behaviour against the machine's own learned baseline.",
-            },
-          ].map((c) => (
-            <div
-              key={c.title}
-              className="rounded-[18px] border border-white/8 bg-white/[0.018] p-6"
-            >
-              <p className="text-[11px] font-bold text-[#29a7ff]">{c.tag}</p>
-              <h3 className="mt-7 text-[18px] font-semibold text-white">
-                {c.title}
-              </h3>
-              <p className="mt-2 text-[12px] leading-relaxed text-white/50">
-                {c.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+function FinalCta() {
+  return <section className="vx-final"><div className="vx-container vx-final-inner"><div><span className="vx-kicker">SEE THE WORKFLOW</span><h2>Less guesswork on<br />the shop floor.</h2><p>Explore how VOLTIX turns machine readings into an event an operator can review and act on.</p></div><a href="#dashboard-preview" className="vx-button vx-button--primary">View dashboard preview</a></div></section>;
 }
-
-// ─── Final CTA ────────────────────────────────────────────────────────────────
-
-function FinalCTA() {
-  return (
-    <section className="relative z-10 mx-auto max-w-7xl overflow-hidden px-6 pb-24">
-      <div className="relative flex flex-col items-start justify-between gap-10 overflow-hidden rounded-[30px] border border-[#1688ff]/28 bg-[#06111d] p-10 md:flex-row md:items-center md:p-14">
-        {/* Blue glow */}
-        <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_75%_50%,rgba(22,136,255,0.12),transparent_55%)]" />
-
-        <div className="relative z-10 max-w-xl">
-          <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-[#29a7ff]">
-            READY TO SEE THE DIFFERENCE?
-          </p>
-          <h2 className="text-[clamp(38px,5.5vw,64px)] font-bold leading-[0.96] tracking-[-0.055em] text-white">
-            Let's make every unit count.
-          </h2>
-          <p className="mt-5 max-w-[480px] text-[15px] leading-relaxed text-white/50">
-            Give legacy machines the intelligence to operate more efficiently,
-            safely, and measurably — toward a sustainable shop floor.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/dashboard"
-              className="group flex items-center gap-2 rounded-full bg-gradient-to-r from-[#147df2] to-[#0870d9] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(22,136,255,0.22)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_38px_rgba(22,136,255,0.38)]"
-            >
-              Open console
-              <span className="transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-            <button className="rounded-full border border-white/12 bg-white/[0.025] px-7 py-3.5 text-sm text-white/70 transition-all hover:border-white/22 hover:text-white">
-              Talk to us
-            </button>
-          </div>
-        </div>
-
-        {/* Energy visual */}
-        <div className="relative z-10 flex h-[250px] w-[250px] shrink-0 items-center justify-center">
-          <div className="absolute h-[210px] w-[210px] animate-[spin_18s_linear_infinite] rounded-full border border-[#1688ff]/25 shadow-[0_0_60px_rgba(22,136,255,0.12)]" />
-          <div className="absolute h-[155px] w-[155px] animate-[spin_12s_linear_infinite_reverse] rounded-full border border-[#20d7c7]/15" />
-          <div className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-gradient-to-br from-[#1688ff] to-[#20d7c7] text-[34px] font-bold text-white shadow-[0_0_60px_rgba(22,136,255,0.4)]">
-            ϟ
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Footer ───────────────────────────────────────────────────────────────────
-
-function Footer() {
-  return (
-    <footer id="about" className="relative z-10 border-t border-white/8">
-      <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-10 sm:flex-row sm:items-center">
-        {/* Brand */}
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#1688ff]/30 bg-gradient-to-br from-[#1688ff]/20 to-[#20d7c7]/10">
-            <VoltixLogo className="h-6 w-6" />
-          </span>
-          <div>
-            <p className="text-sm font-bold text-white">Voltix</p>
-            <p className="text-[10px] text-white/35">
-              Energy ops for the shop floor
-            </p>
-          </div>
-        </div>
-
-        {/* Links */}
-        <div className="flex flex-wrap gap-6">
-          {[
-            ["#product", "Product"],
-            ["#machines", "Machines"],
-            ["#how-it-works", "How it works"],
-            ["#impact", "Impact"],
-          ].map(([href, label]) => (
-            <a
-              key={href}
-              href={href}
-              className="text-[13px] text-white/40 hover:text-white"
-            >
-              {label}
-            </a>
-          ))}
-        </div>
-
-        {/* Meta */}
-        <p className="flex items-center gap-2 text-[10px] text-white/30">
-          <span>SIH26219</span>
-          <span>•</span>
-          <span>Code Huntrix</span>
-        </p>
-      </div>
-    </footer>
-  );
-}
-
-// ─── Intersection observer fade-in ───────────────────────────────────────────
-
-function useSectionFade() {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          el.style.opacity = "1";
-          el.style.transform = "translateY(0)";
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.08 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return ref;
-}
-
-function FadeSection({
-  children,
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  delay?: number;
-}) {
-  const ref = useSectionFade();
-  return (
-    <div
-      ref={ref}
-      style={{
-        opacity: 0,
-        transform: "translateY(32px)",
-        transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-// ─── Main export ─────────────────────────────────────────────────────────────
 
 export function LandingPage() {
-  return (
-    <div className="lp-root min-h-screen overflow-x-hidden text-white">
-      {/* Background */}
-      <div
-        className="lp-bg pointer-events-none fixed inset-0"
-        aria-hidden="true"
-      />
-
-      <Navbar />
-
-      <main>
-        <FadeSection>
-          <Hero />
-        </FadeSection>
-
-        <FadeSection delay={60}>
-          <ValueStrip />
-        </FadeSection>
-
-        <FadeSection delay={80}>
-          <MachinesSection />
-        </FadeSection>
-
-        <FadeSection delay={60}>
-          <HowItWorks />
-        </FadeSection>
-
-        <FadeSection delay={60}>
-          <Differentiation />
-        </FadeSection>
-
-        <FadeSection delay={60}>
-          <ImpactSection />
-        </FadeSection>
-
-        <FadeSection delay={60}>
-          <FinalCTA />
-        </FadeSection>
-      </main>
-
-      <Footer />
-    </div>
-  );
+  return <div className="vx-page"><Header /><main><Hero /><DashboardShowcase /><Problem /><Approach /><Prototype /><FinalCta /></main><footer className="vx-footer"><div className="vx-container vx-footer-inner"><Logo /><p>Machine-level energy intelligence for legacy MSMEs.</p><span>IDEA ENGINEERS · SIH 2026 · SIH26219</span></div></footer></div>;
 }
+
+export default LandingPage;

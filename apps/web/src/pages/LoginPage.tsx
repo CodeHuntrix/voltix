@@ -1,15 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { BrandMark } from "@/components/BrandMark";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import "./auth.css";
 
 const DEMO_EMAIL = "owner@voltix.demo";
 const DEMO_PASSWORD = "voltix-demo";
-const fieldClass =
-  "mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-primary";
-
 export function LoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">(() =>
     new URLSearchParams(window.location.search).has("signup") ? "signup" : "signin",
@@ -76,23 +73,39 @@ export function LoginPage() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="ops-shell flex min-h-screen items-center justify-center px-4 py-10 text-white">
-      <div className="ops-shell-bg pointer-events-none fixed inset-0" aria-hidden="true" />
-      <div className="glass-card relative z-10 w-full max-w-md rounded-3xl p-8">
-        <Link to="/" className="text-sm text-white/40 hover:text-white">
-          Back
+    <div className="auth-page">
+      <aside className="auth-story">
+        <Link to="/" className="auth-brand" aria-label="VOLTIX home">
+          <svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M5 7h9l6 19L28 7h8L21 34h-6L5 7Z" fill="currentColor"/><path d="M28 7h8L21 34h-6l13-27Z" fill="#e6a17c"/></svg>
+          <span>VOLTIX<span>.</span></span>
         </Link>
-        <div className="mt-5">
-          <BrandMark to="/" size="md" />
+        <div className="auth-story-copy">
+          <span className="auth-eyebrow">ENERGY INTELLIGENCE FOR LEGACY INDUSTRY</span>
+          <h1>Know the floor<br />behind the meter.</h1>
+          <p>A practical view of machine behavior, built for teams working with the equipment they already have.</p>
+          <div className="auth-story-card">
+            <span>PRODUCT PREVIEW</span>
+            <strong>From a reading to a decision.</strong>
+            <p>Review machine events, understand the signal, and record what happened next.</p>
+            <small>ILLUSTRATIVE INTERFACE · SAMPLE DATA</small>
+          </div>
         </div>
-        <p className="mt-6 text-lg font-semibold">{isSignup ? "Create your shop" : "Sign in"}</p>
-        <p className="mt-1 text-sm text-white/45">
-          {isSignup
-            ? "Then pick the machines on your floor."
-            : "Judges: use the demo account, or create a shop."}
-        </p>
+        <p className="auth-story-foot">IDEA ENGINEERS · SIH 2026</p>
+      </aside>
+      <main className="auth-main">
+        <div className="auth-form-wrap">
+          <Link to="/" className="vx-button vx-button--tertiary auth-back">Back to website</Link>
+          <div className="auth-form-head">
+            <span className="auth-eyebrow">YOUR WORKSPACE</span>
+            <h2>{isSignup ? "Create your shop" : "Welcome back"}</h2>
+            <p>{isSignup ? "Start with your team and site details. You can add machines next." : "Sign in to continue to your VOLTIX workspace."}</p>
+          </div>
+          <div className="auth-switch" role="group" aria-label="Account action">
+            <button type="button" className={isSignup ? "" : "is-active"} onClick={() => switchMode("signin")}>Sign in</button>
+            <button type="button" className={isSignup ? "is-active" : ""} onClick={() => switchMode("signup")}>Create account</button>
+          </div>
         <form
-          className="mt-6 space-y-4"
+          className="auth-form"
           onSubmit={(e) => {
             e.preventDefault();
             setError(null);
@@ -102,20 +115,20 @@ export function LoginPage() {
         >
           {isSignup && (
             <>
-              <label className="block text-sm">
-                <span className="text-white/45">Your name</span>
+              <label>
+                <span>Your name</span>
                 <input
-                  className={fieldClass}
+                  className="auth-input"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   autoComplete="name"
                   required
                 />
               </label>
-              <label className="block text-sm">
-                <span className="text-white/45">Shop name</span>
+              <label>
+                <span>Shop name</span>
                 <input
-                  className={fieldClass}
+                  className="auth-input"
                   value={shopName}
                   onChange={(e) => setShopName(e.target.value)}
                   autoComplete="organization"
@@ -124,10 +137,10 @@ export function LoginPage() {
               </label>
             </>
           )}
-          <label className="block text-sm">
-            <span className="text-white/45">Email</span>
+          <label>
+            <span>Email address</span>
             <input
-              className={fieldClass}
+              className="auth-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="username"
@@ -135,11 +148,11 @@ export function LoginPage() {
               required
             />
           </label>
-          <label className="block text-sm">
-            <span className="text-white/45">Password</span>
+          <label>
+            <span>Password</span>
             <input
               type="password"
-              className={fieldClass}
+              className="auth-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={isSignup ? "new-password" : "current-password"}
@@ -147,11 +160,11 @@ export function LoginPage() {
               minLength={isSignup ? 6 : undefined}
             />
           </label>
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="auth-error" role="alert">{error}</p>}
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-full bg-primary py-2.5 font-medium text-white hover:bg-primary-hover"
+            className="vx-button vx-button--primary auth-submit"
           >
             {pending
               ? isSignup
@@ -162,13 +175,14 @@ export function LoginPage() {
                 : "Sign in"}
           </button>
         </form>
-        <p className="mt-5 text-center text-sm text-white/45">
+        {!isSignup && <div className="auth-demo"><span>DEMO ACCESS</span><p>For the prototype, the demo account is filled in. Select <strong>Sign in</strong> to explore it.</p></div>}
+        <p className="auth-alternate">
           {isSignup ? (
             <>
               Already have an account?{" "}
               <button
                 type="button"
-                className="font-medium text-sky-300 hover:text-white"
+                className="vx-button vx-button--tertiary auth-inline-button"
                 onClick={() => switchMode("signin")}
               >
                 Sign in
@@ -179,7 +193,7 @@ export function LoginPage() {
               Don&apos;t have an account?{" "}
               <button
                 type="button"
-                className="font-medium text-sky-300 hover:text-white"
+                className="vx-button vx-button--tertiary auth-inline-button"
                 onClick={() => switchMode("signup")}
               >
                 Sign up
@@ -187,7 +201,8 @@ export function LoginPage() {
             </>
           )}
         </p>
+        </div>
+      </main>
       </div>
-    </div>
   );
 }

@@ -32,14 +32,11 @@ export function BrandMark({ to = "/dashboard", size = "lg" }: Props) {
   const inner = (
     <span className={`flex items-center ${s.gap}`}>
       <span
-        className={`${s.mark} flex shrink-0 items-center justify-center rounded-2xl bg-primary shadow-[0_10px_32px_rgba(12,92,171,0.5)]`}
+        className={`${s.mark} flex shrink-0 items-center justify-center rounded-xl bg-[#e6a17c]`}
         aria-hidden="true"
       >
         <svg className="h-[58%] w-[58%]" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M13.2 2.5 5 13.2h6.4L9.1 21.5 19 10.6h-6.2L13.2 2.5Z"
-            fill="white"
-          />
+          <path d="M4 3h4.8L12 14.2 16.5 3H21l-8.1 18h-3L4 3Z" fill="#171b1d" />
         </svg>
       </span>
       <span className="min-w-0 whitespace-nowrap">
@@ -47,7 +44,7 @@ export function BrandMark({ to = "/dashboard", size = "lg" }: Props) {
           Voltix
         </span>
         <span className={`mt-1.5 block font-medium text-white/70 ${s.tag}`}>
-          Energy ops for the shop floor
+          Machine energy intelligence
         </span>
       </span>
     </span>

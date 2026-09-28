@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { BrandMark } from "@/components/BrandMark";
 import { useAuth } from "@/lib/auth";
+import "./ops.css";
 
 const nav = [
   { to: "/dashboard", label: "Machines", icon: "M4 6h16M4 12h16M4 18h10" },
@@ -16,54 +17,53 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <div className="ops-shell min-h-screen text-white">
-      <div className="ops-shell-bg pointer-events-none fixed inset-0" aria-hidden="true" />
-      <aside className="glass-rail fixed left-4 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-2 rounded-full p-2">
+    <div className="ops-shell ops-app">
+      <aside className="ops-sidebar">
+        <div className="ops-sidebar-brand"><BrandMark to="/dashboard" size="sm" /></div>
+        <div className="ops-sidebar-label">WORKSPACE</div>
+        <nav className="ops-nav" aria-label="Workspace navigation">
         {nav.map((item) => {
           const active = path.startsWith(item.to);
           return (
             <Link
               key={item.to}
               to={item.to}
-              title={item.label}
-              className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
-                active ? "bg-primary text-white" : "text-white/55 hover:bg-white/10 hover:text-white"
-              }`}
+              className={`ops-nav-link ${active ? "is-active" : ""}`}
+              aria-current={active ? "page" : undefined}
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
+              <svg className="ops-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
               </svg>
+              <span>{item.label}</span>
             </Link>
           );
         })}
+        </nav>
         <button
           type="button"
-          title="Sign out"
+          className="ops-nav-link ops-signout"
           onClick={() => {
             logout();
             void navigate({ to: "/login" });
           }}
-          className="mt-2 flex h-11 w-11 items-center justify-center rounded-full text-white/40 hover:bg-white/10 hover:text-white"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
+          <svg className="ops-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"
             />
           </svg>
+          <span>Sign out</span>
         </button>
       </aside>
 
-      <div className="relative z-10 pl-20 pr-4 md:pl-24 md:pr-8">
-        <header className="flex items-center justify-between gap-4 py-8">
-          <BrandMark size="lg" />
-          <div className="glass-pill hidden items-center gap-3 px-4 py-2 text-sm text-white/70 sm:flex">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Live telemetry
-          </div>
+      <div className="ops-main">
+        <header className="ops-topbar">
+          <div><span className="ops-topbar-kicker">VOLTIX / OPERATIONS</span><p>Machine intelligence workspace</p></div>
+          <span className="ops-context-chip">Prototype workspace</span>
         </header>
-        <main className="pb-10">{children}</main>
+        <main className="ops-content">{children}</main>
       </div>
     </div>
   );

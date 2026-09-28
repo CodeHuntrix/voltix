@@ -95,7 +95,7 @@ export function DashboardPage() {
           {!live.isLoading && !(live.data ?? []).length && (
             <p className="mt-6 text-white/45">
               No machines yet —{" "}
-              <Link to="/onboarding" className="text-sky-300 hover:text-white">
+              <Link to="/onboarding" className="vx-button vx-button--tertiary">
                 add them in setup
               </Link>
               .
